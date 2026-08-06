@@ -140,17 +140,15 @@ export default function PublicShowcase({ initialCards }: Props) {
     }
   }
 
-  const platforms = useMemo(() => {
-    const fixed = ['Instagram', 'X (Twitter)']
-    const counts: Record<string, number> = {}
-    for (const c of cards) counts[getPlatform(c)] = (counts[getPlatform(c)] || 0) + 1
-    const sorted = fixed.sort((a, b) => (counts[b] || 0) - (counts[a] || 0))
-    return ['전체', ...sorted]
+  const categories = useMemo(() => {
+    const all = cards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))
+    const unique = Array.from(new Set(all))
+    return ['전체', ...unique]
   }, [cards])
 
   const filtered = useMemo(() => {
     return cards
-      .filter(c => filter === '전체' || getPlatform(c) === filter)
+      .filter(c => filter === '전체' || (c.category || '').split(',').map(s => s.trim()).includes(filter))
       .sort((a, b) => getQualityNum(b) - getQualityNum(a) || getFollowers(b) - getFollowers(a))
   }, [cards, filter])
 
@@ -226,17 +224,16 @@ export default function PublicShowcase({ initialCards }: Props) {
             <span className="text-sm text-gray-400 font-semibold">· {filtered.length}건</span>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {platforms.map(p => {
-              const isSelected = filter === p
-              const pfColor = PF[p]?.accent
+            {categories.map(cat => {
+              const isSelected = filter === cat
               return (
-                <button key={p} onClick={() => setFilter(p)}
+                <button key={cat} onClick={() => setFilter(cat)}
                   className="text-sm font-semibold px-4 py-2 rounded-full border transition-all shadow-sm"
                   style={isSelected
                     ? { background: '#eff6ff', color: '#475569', borderColor: '#93c5fd' }
                     : { background: '#fff', color: '#475569', borderColor: '#e5e7eb' }
                   }>
-                  {p}
+                  {cat}
                 </button>
               )
             })}
