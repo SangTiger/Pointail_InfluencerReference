@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(npm *)"
+      "PowerShell(npm *)",
+      "Skill(run)",
+      "PowerShell(cd \"C:\\\\Users\\\\스토어링크\\\\Desktop\\\\SRR\"; Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'C:\\\\Users\\\\스토어링크\\\\Desktop\\\\SRR'; npm run dev\" -WindowStyle Normal)",
+      "WebFetch(domain:global.chlngers.com)",
+      "WebFetch(domain:graph.facebook.com)",
+      "WebFetch(domain:www.instagram.com)",
+      "WebFetch(domain:graph.instagram.com)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
