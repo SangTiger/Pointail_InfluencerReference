@@ -27,12 +27,6 @@ function getQualityNum(card: ReferenceCard): number {
   if (starCount > 0) return starCount
   return qualityToNum[q] || Number(q) || 0
 }
-function getLikes(card: ReferenceCard): number {
-  return Number(card.metrics?.['좋아요'] || 0)
-}
-function getComments(card: ReferenceCard): number {
-  return Number(card.metrics?.['댓글'] || 0)
-}
 function getPostUrl(card: ReferenceCard): string {
   return card.metrics?.['게시물 URL'] || ''
 }
@@ -135,7 +129,7 @@ export default function PublicShowcase({ initialCards }: Props) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Sync failed')
-      setSyncMsg(`${data.upserted}건 동기화, Instagram ${data.ig_updated ?? 0}건 지표 갱신 완료`)
+      setSyncMsg(`${data.upserted}건 동기화 완료`)
       await fetchCards()
       router.refresh()
     } catch {
@@ -162,7 +156,6 @@ export default function PublicShowcase({ initialCards }: Props) {
 
   // KPI 계산
   const totalReach   = cards.reduce((s, c) => s + getFollowers(c), 0)
-  const totalLikes   = cards.reduce((s, c) => s + getLikes(c), 0)
   const avgQuality   = cards.length ? (cards.reduce((s, c) => s + getQualityNum(c), 0) / cards.length) : 0
   const platformCnt  = new Set(cards.map(getPlatform)).size
   const categoryCnt  = new Set(cards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))).size
@@ -276,8 +269,6 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
   const pf = PF[platform] || PF['기타']
   const followers = getFollowers(card)
   const qualityNum = getQualityNum(card)
-  const likes = getLikes(card)
-  const comments = getComments(card)
   const postUrl = getPostUrl(card)
   const cost = getCost(card)
   const executedAt = getExecutedAt(card)
@@ -324,20 +315,6 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
           <div className="bg-gray-100 rounded-xl p-3">
             <div className="text-xs text-gray-500 font-semibold">팔로워</div>
             <div className="text-lg font-black mt-1 text-slate-900">{followers ? fmt(followers) : '-'}</div>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-gray-100 rounded-xl px-3 py-2 flex items-center gap-2">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="#e1306c" stroke="#e1306c" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            <span className="text-sm font-black text-slate-900">{likes ? fmt(likes) : '-'}</span>
-          </div>
-          <div className="bg-gray-100 rounded-xl px-3 py-2 flex items-center gap-2">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            <span className="text-sm font-black text-slate-900">{comments ? fmt(comments) : '-'}</span>
           </div>
         </div>
         {card.category && (
