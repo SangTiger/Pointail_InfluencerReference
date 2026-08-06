@@ -277,7 +277,7 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
             scrolling="no"
             {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
             className="absolute border-0"
-            style={{ top: -90, left: 0, width: 326, height: 480 }}
+            style={{ top: -60, left: '50%', width: 326, height: 480, transform: 'translateX(-50%) scale(1.5)', transformOrigin: 'top center' }}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs text-center px-4 leading-relaxed bg-gray-100">
