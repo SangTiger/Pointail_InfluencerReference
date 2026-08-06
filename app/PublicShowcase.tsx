@@ -264,16 +264,11 @@ export default function PublicShowcase({ initialCards }: Props) {
 function CampaignCard({ card }: { card: ReferenceCard }) {
   const platform = getPlatform(card)
   const pf = PF[platform] || PF['기타']
-  const followers = getFollowers(card)
-  const qualityNum = getQualityNum(card)
   const postUrl = getPostUrl(card)
-  const cost = getCost(card)
-  const executedAt = getExecutedAt(card)
   const embedUrl = igEmbedUrl(postUrl)
 
   return (
     <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md hover:-translate-y-1 hover:shadow-xl transition-all flex flex-col">
-      {/* 썸네일 */}
       <div className="relative w-full overflow-hidden bg-gray-900" style={{ height: 280 }}>
         {embedUrl ? (
           <iframe
@@ -290,50 +285,15 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
           </div>
         )}
       </div>
-
-      {/* 계정 헤더 */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-50">
-        <PlatformLogo platform={platform} />
-        <div className="min-w-0">
-          <div className="font-black text-slate-900 text-sm truncate">
-            {card.brand_name || '미설정'}
-          </div>
-          <div className="text-xs font-bold mt-0.5" style={{ color: pf.color }}>{platform}</div>
-        </div>
-      </div>
-
-      {/* 지표 */}
-      <div className="px-4 py-3 flex flex-col gap-2.5 flex-1">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-gray-100 rounded-xl p-3">
-            <div className="text-xs text-gray-500 font-semibold">퀄리티</div>
-            <div className="mt-1"><Stars q={qualityNum} /></div>
-          </div>
-          <div className="bg-gray-100 rounded-xl p-3">
-            <div className="text-xs text-gray-500 font-semibold">팔로워</div>
-            <div className="text-lg font-black mt-1 text-slate-900">{followers ? fmt(followers) : '-'}</div>
-          </div>
-        </div>
-        {card.category && (
-          <div className="flex flex-wrap gap-1.5">
-            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700">
-              # {card.category}
-            </span>
-          </div>
-        )}
-        {executedAt && <div className="text-xs text-gray-400 font-semibold">참여 지표 기준: {executedAt}</div>}
-      </div>
-
-      {/* 하단 */}
-      <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-50">
+      <div className="px-4 py-3">
         {postUrl ? (
           <a href={postUrl} target="_blank" rel="noopener noreferrer"
-            className="flex-1 text-center text-sm font-bold py-2.5 rounded-xl text-white transition-all hover:brightness-110"
+            className="block text-center text-sm font-bold py-2.5 rounded-xl text-white transition-all hover:brightness-110"
             style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}>
             게시물 보기
           </a>
         ) : (
-          <span className="flex-1 text-center text-sm font-bold py-2.5 rounded-xl bg-gray-100 text-gray-400">
+          <span className="block text-center text-sm font-bold py-2.5 rounded-xl bg-gray-100 text-gray-400">
             URL 없음
           </span>
         )}
