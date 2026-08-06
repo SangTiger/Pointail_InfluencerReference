@@ -252,7 +252,7 @@ export default function PublicShowcase({ initialCards }: Props) {
         {filtered.length === 0 ? (
           <div className="text-center py-24 text-gray-400">데이터 없음</div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map(card => <CampaignCard key={card.id} card={card} />)}
           </div>
         )}
@@ -271,7 +271,7 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
 
   return (
     <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md hover:-translate-y-1 hover:shadow-xl transition-all flex flex-col">
-      <div className="relative overflow-hidden mx-auto" style={{ width: 326, height: 400 }}>
+      <div className="relative w-full overflow-hidden" style={{ height: 400 }}>
         {embedUrl ? (
           <iframe
             src={embedUrl}
@@ -279,7 +279,7 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
             scrolling="no"
             {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
             className="absolute border-0"
-            style={{ top: -60, left: 0, width: 326, height: 580 }}
+            style={{ top: -60, left: '50%', width: 326, height: 580, transform: 'translateX(-50%)' }}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs text-center px-4 leading-relaxed bg-gray-100">
