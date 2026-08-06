@@ -269,7 +269,7 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
 
   return (
     <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md hover:-translate-y-1 hover:shadow-xl transition-all flex flex-col">
-      <div className="relative w-full overflow-hidden" style={{ height: 280 }}>
+      <div className="relative w-full overflow-hidden" style={{ height: 400 }}>
         {embedUrl ? (
           <iframe
             src={embedUrl}
@@ -277,7 +277,7 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
             scrolling="no"
             {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
             className="absolute border-0"
-            style={{ top: -90, left: '50%', width: 326, height: 480, transform: 'translateX(-50%)' }}
+            style={{ top: -60, left: '50%', width: 326, height: 580, transform: 'translateX(-50%)' }}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs text-center px-4 leading-relaxed bg-gray-100">
