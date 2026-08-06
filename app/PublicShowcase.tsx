@@ -142,8 +142,10 @@ export default function PublicShowcase({ initialCards }: Props) {
 
   const categories = useMemo(() => {
     const all = cards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))
-    const unique = Array.from(new Set(all))
-    return ['전체', ...unique]
+    const counts: Record<string, number> = {}
+    for (const cat of all) counts[cat] = (counts[cat] || 0) + 1
+    const sorted = Array.from(new Set(all)).sort((a, b) => counts[b] - counts[a])
+    return ['전체', ...sorted]
   }, [cards])
 
   const filtered = useMemo(() => {
