@@ -269,18 +269,16 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
 
   return (
     <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md hover:-translate-y-1 hover:shadow-xl transition-all flex flex-col">
-      <div className="relative w-full overflow-hidden bg-gray-900" style={{ height: 280 }}>
+      <div className="relative w-full overflow-hidden" style={{ height: 280 }}>
         {embedUrl ? (
-          <div style={{ position: 'absolute', top: -90, left: '50%', transform: 'translateX(-50%)', width: 326, height: 480 }}>
-            <iframe
-              src={embedUrl}
-              loading="lazy"
-              scrolling="no"
-              {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
-              className="border-0"
-              style={{ width: 326, height: 480 }}
-            />
-          </div>
+          <iframe
+            src={embedUrl}
+            loading="lazy"
+            scrolling="no"
+            {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
+            className="absolute border-0"
+            style={{ top: -90, left: 0, width: 326, height: 480 }}
+          />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs text-center px-4 leading-relaxed bg-gray-100">
             미리보기를 불러올 수 없습니다<br />게시물 보기로 확인하세요
