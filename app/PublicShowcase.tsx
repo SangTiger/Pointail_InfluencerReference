@@ -376,11 +376,6 @@ export default function PublicShowcase({ initialCards }: Props) {
           <img src="/pointail_logo.png" alt="Pointail" style={{ height: 36, width: 'auto' }} />
           {/* 오른쪽 액션 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            {syncMsg && (
-              <span style={{ fontSize: 13, color: syncMsg.includes('실패') ? '#ef4444' : '#22c55e', fontWeight: 700, marginRight: 8 }}>
-                {syncMsg}
-              </span>
-            )}
             <button
               onClick={handleSync}
               disabled={syncing}
@@ -453,7 +448,7 @@ export default function PublicShowcase({ initialCards }: Props) {
             No results
           </div>
         ) : (
-          <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map(card => <CampaignCard key={card.id} card={card} showTypeBadge={activeTab === '전체'} />)}
           </div>
         )}
@@ -488,7 +483,9 @@ function CampaignCard({
   const platform = getPlatform(card)
 
   return (
-    <article className="flex flex-col group" style={{ background: '#fff' }}>
+    <article className="flex flex-col group" style={{ background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', borderRadius: 4, transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.14)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)' }}>
       {/* 미디어 영역 */}
       <div className="relative w-full overflow-hidden bg-white" style={{ aspectRatio: '9/16', maxHeight: 440 }}>
         {isEditing && (
@@ -529,14 +526,13 @@ function CampaignCard({
         {/* 게시물 바로가기 버튼 */}
         {!isEditing && postUrl && (
           <a href={postUrl} target="_blank" rel="noopener noreferrer"
+            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             style={{
               position: 'absolute', bottom: 8, right: 8, zIndex: 20,
-              fontSize: 11, fontWeight: 700, textDecoration: 'none',
-              padding: '3px 10px', borderRadius: 2,
-              border: '1px solid #f0a0c8', color: '#e87ab8', background: '#fff',
-              letterSpacing: '0.02em', whiteSpace: 'nowrap',
+              fontSize: 15, fontWeight: 700, textDecoration: 'none',
+              color: '#999', whiteSpace: 'nowrap',
             }}>
-            게시물 보기
+            게시물 바로가기
           </a>
         )}
       </div>
@@ -553,8 +549,8 @@ function CampaignCard({
             {type}
           </span>
           {card.category && (
-            <span style={{ fontSize: 13, color: '#aaa', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>
-              {card.category}
+            <span style={{ fontSize: 13, color: '#666', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>
+              #{card.category}
             </span>
           )}
         </div>
