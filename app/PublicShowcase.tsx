@@ -463,7 +463,7 @@ export default function PublicShowcase({ initialCards }: Props) {
           <div className="text-center py-24 text-gray-400 font-semibold">데이터 없음</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map(card => <CampaignCard key={card.id} card={card} />)}
+            {filtered.map(card => <CampaignCard key={card.id} card={card} showTypeBadge={activeTab === '전체'} />)}
           </div>
         )}
 
@@ -477,11 +477,13 @@ export default function PublicShowcase({ initialCards }: Props) {
 function CampaignCard({
   card,
   isEditing = false,
+  showTypeBadge = false,
   campaignType,
   onTypeChange,
 }: {
   card: ReferenceCard
   isEditing?: boolean
+  showTypeBadge?: boolean
   campaignType?: CampaignType
   onTypeChange?: (type: CampaignType) => void
 }) {
@@ -492,7 +494,7 @@ function CampaignCard({
   return (
     <article className={`bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md flex flex-col transition-all${!isEditing ? ' hover:-translate-y-1 hover:shadow-xl' : ''}`}>
       <div className="relative w-full overflow-hidden" style={{ height: 400 }}>
-        {isEditing && (
+        {isEditing ? (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); onTypeChange?.(type === '비딩형' ? '추가미션' : '비딩형') }}
@@ -507,6 +509,15 @@ function CampaignCard({
               <span className="text-gray-400 text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
             </div>
           </>
+        ) : showTypeBadge && (
+          <div
+            className="absolute top-2 left-2 z-20 text-xs font-bold px-3 py-1.5 rounded-full border shadow-sm pointer-events-none"
+            style={type === '비딩형'
+              ? { background: '#eff6ff', color: '#2563eb', borderColor: '#93c5fd' }
+              : { background: '#fdf4ff', color: '#9333ea', borderColor: '#d8b4fe' }
+            }>
+            {type}
+          </div>
         )}
         {embedUrl ? (
           <iframe
