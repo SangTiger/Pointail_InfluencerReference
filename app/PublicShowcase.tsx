@@ -369,7 +369,7 @@ export default function PublicShowcase({ initialCards }: Props) {
       )}
 
       {/* Hero */}
-      <header className="relative overflow-hidden pb-36 pt-20"
+      <header className="relative overflow-hidden pb-12 pt-20"
         style={{ background: 'linear-gradient(135deg,#e4edff 0%,#eeebff 40%,#faeeff 100%)' }}>
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -right-28 -top-28 w-96 h-96 rounded-full"
@@ -397,19 +397,6 @@ export default function PublicShowcase({ initialCards }: Props) {
       </header>
 
       <div className="max-w-5xl mx-auto px-6 pb-16">
-        {/* KPI */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 -mt-16 relative z-10 mb-10">
-          {kpis.map(k => (
-            <div key={k.label} className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 text-center">
-              <div className="text-base text-gray-600 font-bold">{k.label}</div>
-              <div className="text-2xl font-black mt-2 text-slate-900 tracking-tight">
-                {k.value}<span className="text-sm font-bold text-gray-500 ml-0.5">{k.unit}</span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1 font-semibold">{k.foot}</div>
-            </div>
-          ))}
-        </div>
-
         {/* 탭: 전체 / 비딩형 / 추가미션 */}
         <div className="flex items-center gap-2 mb-5 flex-wrap">
           {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
