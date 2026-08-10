@@ -480,7 +480,7 @@ function CampaignCard({
 
   return (
     <article className={`bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md flex flex-col transition-all${!isEditing ? ' hover:-translate-y-1 hover:shadow-xl' : ''}`}>
-      <div className="relative w-full overflow-hidden" style={{ height: 400 }}>
+      <div className="relative w-full overflow-hidden bg-black" style={{ height: 400 }}>
         {isEditing ? (
           <>
             <button
@@ -515,7 +515,7 @@ function CampaignCard({
             className="absolute border-0"
             style={{
               top: -60, left: '50%', width: 326, height: 580,
-              transform: 'translateX(-50%) scale(1.18)',
+              transform: 'translateX(-50%)',
               transformOrigin: 'top center',
               pointerEvents: isEditing ? 'none' : 'auto',
             }}
