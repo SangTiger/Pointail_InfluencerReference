@@ -5,36 +5,23 @@ import { useRouter } from 'next/navigation'
 import { ReferenceCard } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 
-const PF: Record<string, { color: string; badge: string; label: string; accent: string }> = {
-  Instagram:    { color: '#e1306c', badge: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', label: 'IG', accent: '#e1306c' },
-  'X (Twitter)':{ color: '#000000', badge: '#000000', label: 'X',  accent: '#000000' },
-  Lips:         { color: '#1a0a0a', badge: '#C2185B', label: 'LP', accent: '#C2185B' },
-  '@cosme':     { color: '#3DBDB0', badge: '#3DBDB0', label: 'AC', accent: '#3DBDB0' },
-  기타:          { color: '#64748b', badge: '#94a3b8', label: '기타', accent: '#64748b' },
-}
+type CampaignType = '비딩형' | '추가미션'
 
-const qualityToNum: Record<string, number> = { S: 5, A: 4, B: 3, C: 2, D: 1, '★': 1, '★★': 2, '★★★': 3, '★★★★': 4, '★★★★★': 5 }
-
-function getPlatform(card: ReferenceCard): string {
+function getPlatform(card: ReferenceCard) {
   return card.metrics?.['플랫폼'] || '기타'
 }
-function getFollowers(card: ReferenceCard): number {
+function getFollowers(card: ReferenceCard) {
   return Number(card.metrics?.['팔로워 수'] || 0)
 }
-function getQualityNum(card: ReferenceCard): number {
+function getQualityNum(card: ReferenceCard) {
   const q = card.metrics?.['퀄리티'] || ''
-  const starCount = (q.match(/★/g) || []).length
-  if (starCount > 0) return starCount
-  return qualityToNum[q] || Number(q) || 0
+  const stars = (q.match(/★/g) || []).length
+  if (stars > 0) return stars
+  const map: Record<string, number> = { S: 5, A: 4, B: 3, C: 2, D: 1 }
+  return map[q] || Number(q) || 0
 }
-function getPostUrl(card: ReferenceCard): string {
+function getPostUrl(card: ReferenceCard) {
   return card.metrics?.['게시물 URL'] || ''
-}
-function getCost(card: ReferenceCard): string {
-  return card.metrics?.['비용/보수'] || ''
-}
-function getExecutedAt(card: ReferenceCard): string {
-  return card.metrics?.['실행일'] || ''
 }
 function igEmbedUrl(url: string): string | null {
   const m = (url || '').match(/\/(p|reels?|tv)\/([A-Za-z0-9_-]+)/)
@@ -42,25 +29,21 @@ function igEmbedUrl(url: string): string | null {
   const type = m[1] === 'reels' ? 'reel' : m[1]
   return `https://www.instagram.com/${type}/${m[2]}/embed`
 }
-function fmt(n: number): string {
+function fmt(n: number) {
   return n.toLocaleString('ko-KR')
 }
-function Stars({ q }: { q: number }) {
-  return (
-    <span className="text-base tracking-wide">
-      {Array.from({ length: 5 }, (_, i) => (
-        <span key={i} className={i < q ? 'text-yellow-400' : 'text-gray-200'}>★</span>
-      ))}
-    </span>
-  )
+function getCampaignType(card: ReferenceCard): CampaignType {
+  return card.campaign_type ?? '비딩형'
 }
 
-function PlatformLogo({ platform }: { platform: string }) {
+function PlatformLogo({ platform, size = 'md' }: { platform: string; size?: 'sm' | 'md' }) {
+  const dim = size === 'sm' ? 'w-8 h-8' : 'w-11 h-11'
+  const iconSize = size === 'sm' ? 16 : 22
   if (platform === 'Instagram') {
     return (
-      <div className="w-11 h-11 rounded-xl flex-none flex items-center justify-center"
+      <div className={`${dim} rounded-xl flex-none flex items-center justify-center`}
         style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg viewBox="0 0 24 24" width={iconSize} height={iconSize} fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="2" width="20" height="20" rx="5"/>
           <circle cx="12" cy="12" r="5"/>
           <circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none"/>
@@ -70,8 +53,8 @@ function PlatformLogo({ platform }: { platform: string }) {
   }
   if (platform === 'X (Twitter)') {
     return (
-      <div className="w-11 h-11 rounded-xl flex-none flex items-center justify-center" style={{ background: '#000' }}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+      <div className={`${dim} rounded-xl flex-none flex items-center justify-center`} style={{ background: '#000' }}>
+        <svg viewBox="0 0 24 24" width={iconSize - 2} height={iconSize - 2} fill="white">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
         </svg>
       </div>
@@ -79,21 +62,21 @@ function PlatformLogo({ platform }: { platform: string }) {
   }
   if (platform === 'Lips') {
     return (
-      <div className="w-11 h-11 rounded-xl flex-none overflow-hidden">
+      <div className={`${dim} rounded-xl flex-none overflow-hidden`}>
         <img src="/lips.png" alt="Lips" className="w-full h-full object-cover" />
       </div>
     )
   }
   if (platform === '@cosme') {
     return (
-      <div className="w-11 h-11 rounded-xl flex-none overflow-hidden">
+      <div className={`${dim} rounded-xl flex-none overflow-hidden`}>
         <img src="/cosme.png" alt="@cosme" className="w-full h-full object-cover" />
       </div>
     )
   }
   return (
-    <div className="w-11 h-11 rounded-xl flex-none flex items-center justify-center bg-slate-400">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+    <div className={`${dim} rounded-xl flex-none flex items-center justify-center bg-slate-400`}>
+      <svg viewBox="0 0 24 24" width={iconSize - 2} height={iconSize - 2} fill="white">
         <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
       </svg>
     </div>
@@ -104,10 +87,24 @@ interface Props { initialCards: ReferenceCard[] }
 
 export default function PublicShowcase({ initialCards }: Props) {
   const router = useRouter()
-  const [cards, setCards] = useState(initialCards)
+  const [cards, setCards] = useState<ReferenceCard[]>(initialCards)
+  const [activeTab, setActiveTab] = useState<CampaignType>('비딩형')
   const [filter, setFilter] = useState('전체')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState<string | null>(null)
+
+  // 편집 모드
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
+  const [passwordError, setPasswordError] = useState(false)
+  const [verifying, setVerifying] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [editPassword, setEditPassword] = useState('')
+  const [editCards, setEditCards] = useState<ReferenceCard[]>([])
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<string | null>(null)
 
   async function fetchCards() {
     const supabase = createClient()
@@ -115,7 +112,8 @@ export default function PublicShowcase({ initialCards }: Props) {
       .from('reference_cards')
       .select('*')
       .eq('is_public', true)
-      .order('created_at', { ascending: false })
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
     if (data) setCards(data as ReferenceCard[])
   }
 
@@ -140,55 +138,241 @@ export default function PublicShowcase({ initialCards }: Props) {
     }
   }
 
+  async function handlePasswordSubmit() {
+    if (!passwordInput) return
+    setVerifying(true)
+    setPasswordError(false)
+    try {
+      const res = await fetch('/api/auth/edit-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput }),
+      })
+      if (res.ok) {
+        setEditPassword(passwordInput)
+        setPasswordInput('')
+        setShowPasswordModal(false)
+        setEditCards(cards.map((c, i) => ({
+          ...c,
+          sort_order: c.sort_order ?? i,
+          campaign_type: c.campaign_type ?? '비딩형',
+        })))
+        setEditMode(true)
+      } else {
+        setPasswordError(true)
+      }
+    } catch {
+      setPasswordError(true)
+    } finally {
+      setVerifying(false)
+    }
+  }
+
+  function handleTypeChange(id: string, type: CampaignType) {
+    setEditCards(prev => prev.map(c => c.id === id ? { ...c, campaign_type: type } : c))
+  }
+
+  function handleDragStart(index: number) {
+    setDragIndex(index)
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault()
+    setDragOver(index)
+    if (dragIndex === null || dragIndex === index) return
+    setEditCards(prev => {
+      const next = [...prev]
+      const [removed] = next.splice(dragIndex, 1)
+      next.splice(index, 0, removed)
+      return next
+    })
+    setDragIndex(index)
+  }
+
+  function handleDragEnd() {
+    setDragIndex(null)
+    setDragOver(null)
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setSaveMsg(null)
+    try {
+      const items = editCards.map((c, i) => ({
+        id: c.id,
+        sort_order: i,
+        campaign_type: getCampaignType(c),
+      }))
+      const res = await fetch('/api/cards/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: editPassword, items }),
+      })
+      if (!res.ok) throw new Error('Save failed')
+      setSaveMsg('저장 완료!')
+      await fetchCards()
+      setEditMode(false)
+      setEditPassword('')
+    } catch {
+      setSaveMsg('저장 실패')
+    } finally {
+      setSaving(false)
+      setTimeout(() => setSaveMsg(null), 3000)
+    }
+  }
+
+  function handleCancel() {
+    setEditMode(false)
+    setEditPassword('')
+    setEditCards([])
+    setDragIndex(null)
+  }
+
+  // 일반 모드 계산
   const categories = useMemo(() => {
-    const all = cards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))
+    const tabCards = cards.filter(c => getCampaignType(c) === activeTab)
+    const all = tabCards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))
     const counts: Record<string, number> = {}
     for (const cat of all) counts[cat] = (counts[cat] || 0) + 1
     const sorted = Array.from(new Set(all)).sort((a, b) => counts[b] - counts[a])
     return ['전체', ...sorted]
-  }, [cards])
+  }, [cards, activeTab])
 
   const filtered = useMemo(() => {
     return cards
+      .filter(c => getCampaignType(c) === activeTab)
       .filter(c => filter === '전체' || (c.category || '').split(',').map(s => s.trim()).includes(filter))
-      .sort((a, b) => getQualityNum(b) - getQualityNum(a) || getFollowers(b) - getFollowers(a))
-  }, [cards, filter])
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+  }, [cards, activeTab, filter])
 
-  // KPI 계산
-  const totalReach   = cards.reduce((s, c) => s + getFollowers(c), 0)
-  const avgQuality   = cards.length ? (cards.reduce((s, c) => s + getQualityNum(c), 0) / cards.length) : 0
-  const platformCnt  = new Set(cards.map(getPlatform)).size
-  const categoryCnt  = new Set(cards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))).size
-
+  // KPI
+  const totalReach = cards.reduce((s, c) => s + getFollowers(c), 0)
+  const avgQuality = cards.length ? cards.reduce((s, c) => s + getQualityNum(c), 0) / cards.length : 0
+  const platformCnt = new Set(cards.map(getPlatform)).size
+  const categoryCnt = new Set(cards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))).size
   const kpis = [
-    { label: '진행 캠페인',      value: cards.length,          unit: '건',  dot: '#2563eb', foot: '기록된 레퍼런스' },
-    { label: '평균 퀄리티',      value: avgQuality.toFixed(1), unit: '/5', dot: '#2563eb', foot: '콘텐츠 완성도' },
-    { label: '누적 팔로워',      value: fmt(totalReach),       unit: '명',  dot: '#2563eb', foot: '인플루언서 합산' },
-    { label: '활용 플랫폼',      value: platformCnt,           unit: '개',  dot: '#2563eb', foot: '채널 다양성' },
-    { label: '제품 카테고리',    value: categoryCnt,           unit: '개',  dot: '#2563eb', foot: '제품군 다양성' },
+    { label: '진행 캠페인',   value: cards.length,          unit: '건', foot: '기록된 레퍼런스' },
+    { label: '평균 퀄리티',   value: avgQuality.toFixed(1), unit: '/5', foot: '콘텐츠 완성도' },
+    { label: '누적 팔로워',   value: fmt(totalReach),       unit: '명', foot: '인플루언서 합산' },
+    { label: '활용 플랫폼',   value: platformCnt,           unit: '개', foot: '채널 다양성' },
+    { label: '제품 카테고리', value: categoryCnt,           unit: '개', foot: '제품군 다양성' },
   ]
 
+  // ── 편집 모드 UI ──────────────────────────────────────────
+  if (editMode) {
+    return (
+      <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
+        {/* 상단 편집 헤더 */}
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+          <div className="max-w-2xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="font-black text-slate-900" style={{ fontSize: '1.4rem', letterSpacing: '-0.03em' }}>storelink.</span>
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                편집 모드
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {saveMsg && (
+                <span className={`text-sm font-semibold ${saveMsg.includes('실패') ? 'text-red-500' : 'text-green-600'}`}>
+                  {saveMsg}
+                </span>
+              )}
+              <button onClick={handleCancel}
+                className="text-sm font-bold px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:border-gray-400 transition-all">
+                취소
+              </button>
+              <button onClick={handleSave} disabled={saving}
+                className="text-sm font-bold px-5 py-2 rounded-full text-white transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}>
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-6 py-8">
+          <p className="text-sm text-gray-400 mb-6 font-semibold">
+            ⠿ 핸들을 드래그해서 순서 변경 · 배지 클릭으로 유형 전환
+          </p>
+          <div className="flex flex-col gap-2">
+            {editCards.map((card, index) => (
+              <EditItem
+                key={card.id}
+                card={card}
+                index={index}
+                isDragging={dragIndex === index}
+                isDragOver={dragOver === index}
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                onTypeChange={(type) => handleTypeChange(card.id, type)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── 일반 모드 UI ──────────────────────────────────────────
   return (
     <div className="min-h-screen" style={{ background: '#ffffff', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
+
+      {/* 비밀번호 모달 */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-80 mx-4">
+            <h3 className="text-xl font-black text-slate-900 mb-1">편집 모드</h3>
+            <p className="text-sm text-gray-500 mb-5">비밀번호를 입력하면 순서와 유형을 편집할 수 있습니다.</p>
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={e => { setPasswordInput(e.target.value); setPasswordError(false) }}
+              onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
+              placeholder="비밀번호"
+              autoFocus
+              className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all"
+              style={passwordError
+                ? { borderColor: '#f87171', background: '#fff7f7' }
+                : { borderColor: '#e5e7eb' }
+              }
+            />
+            {passwordError && (
+              <p className="text-xs text-red-500 mt-1.5 font-semibold">비밀번호가 틀렸습니다.</p>
+            )}
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={() => { setShowPasswordModal(false); setPasswordInput(''); setPasswordError(false) }}
+                className="flex-1 text-sm font-bold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:border-gray-400 transition-all">
+                취소
+              </button>
+              <button
+                onClick={handlePasswordSubmit}
+                disabled={verifying || !passwordInput}
+                className="flex-1 text-sm font-bold py-2.5 rounded-xl text-white disabled:opacity-50 transition-all"
+                style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}>
+                {verifying ? '확인 중...' : '확인'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero */}
       <header className="relative overflow-hidden pb-36 pt-20"
         style={{ background: 'linear-gradient(135deg,#e4edff 0%,#eeebff 40%,#faeeff 100%)' }}>
-        {/* 배경 장식 */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -right-28 -top-28 w-96 h-96 rounded-full"
             style={{ background: 'radial-gradient(circle,rgba(167,139,250,.2),transparent 60%)' }} />
           <div className="absolute -left-24 -bottom-32 w-96 h-96 rounded-full"
             style={{ background: 'radial-gradient(circle,rgba(99,102,241,.15),transparent 60%)' }} />
         </div>
-
         <div className="relative z-10 max-w-5xl mx-auto px-6">
-          {/* 브랜드 + 태그 */}
           <div className="mb-8">
-            <span className="text-slate-900 tracking-tight" style={{ fontSize: '3.5rem', fontWeight: 900, letterSpacing: '-0.03em' }}>storelink.</span>
+            <span className="text-slate-900 tracking-tight" style={{ fontSize: '3.5rem', fontWeight: 900, letterSpacing: '-0.03em' }}>
+              storelink.
+            </span>
           </div>
-
-          {/* 메인 카피 */}
           <div className="max-w-2xl">
             <h1 className="text-4xl font-black text-slate-900 leading-tight tracking-tight">
               검증된 인플루언서 레퍼런스로,<br />
@@ -203,14 +387,11 @@ export default function PublicShowcase({ initialCards }: Props) {
       </header>
 
       <div className="max-w-5xl mx-auto px-6 pb-16">
-
-        {/* KPI 카드 */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 -mt-16 relative z-10 mb-8">
-          {kpis.map((k) => (
+        {/* KPI */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 -mt-16 relative z-10 mb-10">
+          {kpis.map(k => (
             <div key={k.label} className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 text-center">
-              <div className="flex items-center justify-center gap-1.5 text-base text-gray-600 font-bold">
-                {k.label}
-              </div>
+              <div className="text-base text-gray-600 font-bold">{k.label}</div>
               <div className="text-2xl font-black mt-2 text-slate-900 tracking-tight">
                 {k.value}<span className="text-sm font-bold text-gray-500 ml-0.5">{k.unit}</span>
               </div>
@@ -219,53 +400,137 @@ export default function PublicShowcase({ initialCards }: Props) {
           ))}
         </div>
 
-        {/* 필터 + 동기화 */}
-        <div className="mb-5">
-          <div className="flex items-center gap-3 mb-3">
-            <h2 className="text-2xl font-black text-slate-900">SNS 캠페인 레퍼런스</h2>
-            <span className="text-sm text-gray-400 font-semibold">· {filtered.length}건</span>
+        {/* 탭: 비딩형 / 추가미션 */}
+        <div className="flex items-center gap-2 mb-5 flex-wrap">
+          {(['비딩형', '추가미션'] as CampaignType[]).map(tab => (
+            <button key={tab} onClick={() => { setActiveTab(tab); setFilter('전체') }}
+              className="px-6 py-2.5 rounded-full font-black text-sm transition-all"
+              style={activeTab === tab
+                ? { background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: '#fff', boxShadow: '0 4px 12px rgba(37,99,235,.3)' }
+                : { background: '#f1f5f9', color: '#64748b' }
+              }>
+              {tab}
+              <span className="ml-2 font-semibold opacity-70 text-xs">
+                {cards.filter(c => getCampaignType(c) === tab).length}
+              </span>
+            </button>
+          ))}
+          <div className="ml-auto flex items-center gap-2">
+            <button onClick={() => setShowPasswordModal(true)}
+              className="text-sm font-bold px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700 transition-all shadow-sm">
+              편집
+            </button>
+            <button onClick={handleSync} disabled={syncing}
+              className="text-sm font-bold px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 hover:border-slate-400 disabled:opacity-50 transition-all shadow-sm">
+              {syncing ? '동기화 중...' : '동기화'}
+            </button>
+            {syncMsg && <span className="text-xs font-semibold text-green-600">{syncMsg}</span>}
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {categories.map(cat => {
-              const isSelected = filter === cat
-              return (
-                <button key={cat} onClick={() => setFilter(cat)}
-                  className="text-sm font-semibold px-4 py-2 rounded-full border transition-all shadow-sm"
-                  style={isSelected
-                    ? { background: '#eff6ff', color: '#475569', borderColor: '#93c5fd' }
-                    : { background: '#fff', color: '#475569', borderColor: '#e5e7eb' }
-                  }>
-                  {cat}
-                </button>
-              )
-            })}
-            <div className="ml-auto flex items-center gap-2">
-              <button onClick={handleSync} disabled={syncing}
-                className="text-sm font-bold px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 hover:border-slate-400 disabled:opacity-50 transition-all shadow-sm">
-                동기화
-              </button>
-            </div>
-          </div>
+        </div>
+
+        {/* 카테고리 필터 */}
+        <div className="flex items-center gap-2 flex-wrap mb-5">
+          {categories.map(cat => (
+            <button key={cat} onClick={() => setFilter(cat)}
+              className="text-sm font-semibold px-4 py-2 rounded-full border transition-all shadow-sm"
+              style={filter === cat
+                ? { background: '#eff6ff', color: '#475569', borderColor: '#93c5fd' }
+                : { background: '#fff', color: '#475569', borderColor: '#e5e7eb' }
+              }>
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* 헤더 */}
+        <div className="mb-4 flex items-center gap-2">
+          <h2 className="text-2xl font-black text-slate-900">SNS 캠페인 레퍼런스</h2>
+          <span className="text-sm text-gray-400 font-semibold">· {filtered.length}건</span>
         </div>
 
         {/* 카드 그리드 */}
         {filtered.length === 0 ? (
-          <div className="text-center py-24 text-gray-400">데이터 없음</div>
+          <div className="text-center py-24 text-gray-400 font-semibold">데이터 없음</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map(card => <CampaignCard key={card.id} card={card} />)}
           </div>
         )}
 
-        <div className="mt-6 text-center text-xs text-gray-400">© STORELINK · 캠페인 레퍼런스 대시보드</div>
+        <div className="mt-8 text-center text-xs text-gray-400">© STORELINK · 캠페인 레퍼런스 대시보드</div>
       </div>
     </div>
   )
 }
 
-function CampaignCard({ card }: { card: ReferenceCard }) {
+// ── 편집 모드 아이템 ───────────────────────────────────────
+function EditItem({
+  card, index, isDragging, isDragOver,
+  onDragStart, onDragOver, onDragEnd, onTypeChange,
+}: {
+  card: ReferenceCard
+  index: number
+  isDragging: boolean
+  isDragOver: boolean
+  onDragStart: () => void
+  onDragOver: (e: React.DragEvent) => void
+  onDragEnd: () => void
+  onTypeChange: (type: CampaignType) => void
+}) {
   const platform = getPlatform(card)
-  const pf = PF[platform] || PF['기타']
+  const q = getQualityNum(card)
+  const type = getCampaignType(card)
+
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
+      className="flex items-center gap-3 px-4 py-3 bg-white border rounded-2xl transition-all select-none"
+      style={{
+        opacity: isDragging ? 0.4 : 1,
+        borderColor: isDragOver && !isDragging ? '#93c5fd' : '#e5e7eb',
+        boxShadow: isDragOver && !isDragging ? '0 0 0 2px #bfdbfe' : '0 1px 3px rgba(0,0,0,.06)',
+        cursor: isDragging ? 'grabbing' : 'grab',
+      }}
+    >
+      {/* 드래그 핸들 */}
+      <span className="text-gray-300 text-xl flex-none" style={{ lineHeight: 1, fontFamily: 'monospace' }}>⠿</span>
+
+      {/* 순번 */}
+      <span className="w-5 text-center text-xs font-bold text-gray-400 flex-none">{index + 1}</span>
+
+      {/* 플랫폼 */}
+      <PlatformLogo platform={platform} size="sm" />
+
+      {/* 정보 */}
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-sm text-slate-900 truncate">
+          {card.brand_name || '(이름없음)'}
+        </div>
+        <div className="text-xs text-gray-400 truncate">
+          {card.category}
+          {q > 0 && <span className="ml-1 text-yellow-400">{'★'.repeat(q)}</span>}
+        </div>
+      </div>
+
+      {/* 유형 토글 버튼 */}
+      <button
+        onClick={() => onTypeChange(type === '비딩형' ? '추가미션' : '비딩형')}
+        className="text-xs font-bold px-3 py-1.5 rounded-full border flex-none transition-all"
+        style={type === '비딩형'
+          ? { background: '#eff6ff', color: '#2563eb', borderColor: '#93c5fd' }
+          : { background: '#fdf4ff', color: '#9333ea', borderColor: '#d8b4fe' }
+        }>
+        {type}
+      </button>
+    </div>
+  )
+}
+
+// ── 일반 모드 카드 ─────────────────────────────────────────
+function CampaignCard({ card }: { card: ReferenceCard }) {
   const postUrl = getPostUrl(card)
   const embedUrl = igEmbedUrl(postUrl)
 

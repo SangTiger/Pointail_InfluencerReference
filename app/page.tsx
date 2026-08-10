@@ -8,7 +8,8 @@ export default async function HomePage() {
     .from('reference_cards')
     .select('*')
     .eq('is_public', true)
-    .order('created_at', { ascending: false })
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
 
   if (error) {
     console.error('Failed to fetch cards:', error)

@@ -12,6 +12,8 @@ export interface ReferenceCard {
   created_by: string
   created_at: string
   updated_at: string
+  sort_order: number
+  campaign_type: '비딩형' | '추가미션'
 }
 
 export interface ReferenceCardFormData {
