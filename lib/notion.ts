@@ -41,6 +41,8 @@ export function mapNotionPageToCard(page: any) {
   const memo = getText(props['메모'])
   const postUrl = getUrl(props['게시물 URL'])
   const executedAt = getDate(props['실행일'])
+  const notionType = getSelect(props['유형'])
+  const campaignType = notionType === '추가미션' ? '추가미션' : '비딩형'
 
   const metrics: Record<string, string> = {}
   if (platform) metrics['플랫폼'] = platform
@@ -62,5 +64,6 @@ export function mapNotionPageToCard(page: any) {
     image_urls: [] as string[],
     is_public: true,
     is_anonymous: false,
+    campaign_type: campaignType,
   }
 }
