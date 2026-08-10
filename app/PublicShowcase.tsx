@@ -264,7 +264,7 @@ export default function PublicShowcase({ initialCards }: Props) {
       <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
         {/* 상단 편집 헤더 */}
         <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
-          <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="font-black text-slate-900" style={{ fontSize: '1.4rem', letterSpacing: '-0.03em' }}>storelink.</span>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
@@ -290,23 +290,33 @@ export default function PublicShowcase({ initialCards }: Props) {
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto px-6 py-8">
+        <div className="max-w-5xl mx-auto px-6 py-8">
           <p className="text-sm text-gray-400 mb-6 font-semibold">
-            ⠿ 핸들을 드래그해서 순서 변경 · 배지 클릭으로 유형 전환
+            카드를 드래그해서 순서 변경 · 왼쪽 배지 클릭으로 유형 전환
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {editCards.map((card, index) => (
-              <EditItem
+              <div
                 key={card.id}
-                card={card}
-                index={index}
-                isDragging={dragIndex === index}
-                isDragOver={dragOver === index}
+                draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
-                onTypeChange={(type) => handleTypeChange(card.id, type)}
-              />
+                style={{
+                  opacity: dragIndex === index ? 0.4 : 1,
+                  outline: dragOver === index && dragIndex !== index ? '2px solid #93c5fd' : 'none',
+                  outlineOffset: '2px',
+                  borderRadius: '16px',
+                  cursor: dragIndex === index ? 'grabbing' : 'grab',
+                }}
+              >
+                <CampaignCard
+                  card={card}
+                  isEditing
+                  campaignType={getCampaignType(card)}
+                  onTypeChange={(type) => handleTypeChange(card.id, type)}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -463,80 +473,41 @@ export default function PublicShowcase({ initialCards }: Props) {
   )
 }
 
-// ── 편집 모드 아이템 ───────────────────────────────────────
-function EditItem({
-  card, index, isDragging, isDragOver,
-  onDragStart, onDragOver, onDragEnd, onTypeChange,
+// ── 카드 (일반 + 편집 겸용) ───────────────────────────────
+function CampaignCard({
+  card,
+  isEditing = false,
+  campaignType,
+  onTypeChange,
 }: {
   card: ReferenceCard
-  index: number
-  isDragging: boolean
-  isDragOver: boolean
-  onDragStart: () => void
-  onDragOver: (e: React.DragEvent) => void
-  onDragEnd: () => void
-  onTypeChange: (type: CampaignType) => void
+  isEditing?: boolean
+  campaignType?: CampaignType
+  onTypeChange?: (type: CampaignType) => void
 }) {
-  const platform = getPlatform(card)
-  const q = getQualityNum(card)
-  const type = getCampaignType(card)
-
-  return (
-    <div
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-      className="flex items-center gap-3 px-4 py-3 bg-white border rounded-2xl transition-all select-none"
-      style={{
-        opacity: isDragging ? 0.4 : 1,
-        borderColor: isDragOver && !isDragging ? '#93c5fd' : '#e5e7eb',
-        boxShadow: isDragOver && !isDragging ? '0 0 0 2px #bfdbfe' : '0 1px 3px rgba(0,0,0,.06)',
-        cursor: isDragging ? 'grabbing' : 'grab',
-      }}
-    >
-      {/* 드래그 핸들 */}
-      <span className="text-gray-300 text-xl flex-none" style={{ lineHeight: 1, fontFamily: 'monospace' }}>⠿</span>
-
-      {/* 순번 */}
-      <span className="w-5 text-center text-xs font-bold text-gray-400 flex-none">{index + 1}</span>
-
-      {/* 플랫폼 */}
-      <PlatformLogo platform={platform} size="sm" />
-
-      {/* 정보 */}
-      <div className="flex-1 min-w-0">
-        <div className="font-bold text-sm text-slate-900 truncate">
-          {card.brand_name || '(이름없음)'}
-        </div>
-        <div className="text-xs text-gray-400 truncate">
-          {card.category}
-          {q > 0 && <span className="ml-1 text-yellow-400">{'★'.repeat(q)}</span>}
-        </div>
-      </div>
-
-      {/* 유형 토글 버튼 */}
-      <button
-        onClick={() => onTypeChange(type === '비딩형' ? '추가미션' : '비딩형')}
-        className="text-xs font-bold px-3 py-1.5 rounded-full border flex-none transition-all"
-        style={type === '비딩형'
-          ? { background: '#eff6ff', color: '#2563eb', borderColor: '#93c5fd' }
-          : { background: '#fdf4ff', color: '#9333ea', borderColor: '#d8b4fe' }
-        }>
-        {type}
-      </button>
-    </div>
-  )
-}
-
-// ── 일반 모드 카드 ─────────────────────────────────────────
-function CampaignCard({ card }: { card: ReferenceCard }) {
   const postUrl = getPostUrl(card)
   const embedUrl = igEmbedUrl(postUrl)
+  const type = campaignType || getCampaignType(card)
 
   return (
-    <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md hover:-translate-y-1 hover:shadow-xl transition-all flex flex-col">
+    <article className={`bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md flex flex-col transition-all${!isEditing ? ' hover:-translate-y-1 hover:shadow-xl' : ''}`}>
       <div className="relative w-full overflow-hidden" style={{ height: 400 }}>
+        {isEditing && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); onTypeChange?.(type === '비딩형' ? '추가미션' : '비딩형') }}
+              className="absolute top-2 left-2 z-20 text-xs font-bold px-3 py-1.5 rounded-full border shadow-sm"
+              style={type === '비딩형'
+                ? { background: '#eff6ff', color: '#2563eb', borderColor: '#93c5fd' }
+                : { background: '#fdf4ff', color: '#9333ea', borderColor: '#d8b4fe' }
+              }>
+              {type}
+            </button>
+            <div className="absolute top-2 right-2 z-20 bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm">
+              <span className="text-gray-400 text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
+            </div>
+          </>
+        )}
         {embedUrl ? (
           <iframe
             src={embedUrl}
@@ -544,7 +515,10 @@ function CampaignCard({ card }: { card: ReferenceCard }) {
             scrolling="no"
             {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
             className="absolute border-0"
-            style={{ top: -60, left: '50%', width: 326, height: 580, transform: 'translateX(-50%)' }}
+            style={{
+              top: -60, left: '50%', width: 326, height: 580, transform: 'translateX(-50%)',
+              pointerEvents: isEditing ? 'none' : 'auto',
+            }}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs text-center px-4 leading-relaxed bg-gray-100">
