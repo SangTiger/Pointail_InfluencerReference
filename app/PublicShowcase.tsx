@@ -283,7 +283,7 @@ export default function PublicShowcase({ initialCards }: Props) {
               </button>
               <button onClick={handleSave} disabled={saving}
                 className="text-sm font-bold px-5 py-2 rounded-full text-white transition-all disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}>
+                style={{ background: '#e87ab8' }}>
                 {saving ? '저장 중...' : '저장'}
               </button>
             </div>
@@ -326,7 +326,7 @@ export default function PublicShowcase({ initialCards }: Props) {
 
   // ── 일반 모드 UI ──────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: '#f7f7f5', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
+    <div className="min-h-screen" style={{ background: '#f5f5f3', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
 
       {/* 비밀번호 모달 */}
       {showPasswordModal && (
@@ -361,7 +361,7 @@ export default function PublicShowcase({ initialCards }: Props) {
                 onClick={handlePasswordSubmit}
                 disabled={verifying || !passwordInput}
                 className="flex-1 text-xs font-bold py-2.5 text-white disabled:opacity-40 transition-all"
-                style={{ background: '#111', borderRadius: 2 }}>
+                style={{ background: '#e87ab8', borderRadius: 2 }}>
                 {verifying ? '...' : '확인'}
               </button>
             </div>
@@ -369,91 +369,99 @@ export default function PublicShowcase({ initialCards }: Props) {
         </div>
       )}
 
-      {/* 상단 헤더 */}
-      <header style={{ borderBottom: '1px solid #e8e8e4', background: '#f7f7f5' }}>
-        <div className="max-w-7xl mx-auto px-8 py-6 flex items-end justify-between">
-          {/* 좌: 브랜드 + 타이틀 */}
-          <div>
-            <div className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-3">Storelink</div>
-            <h1 style={{ fontSize: '2.6rem', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, color: '#111' }}>
-              캠페인 레퍼런스
-            </h1>
-          </div>
-          {/* 우: 카운트 + 버튼 */}
-          <div className="flex items-end gap-6 pb-1">
-            <div className="text-right">
-              <div className="text-3xl font-black text-black" style={{ letterSpacing: '-0.03em' }}>{cards.length}</div>
-              <div className="text-xs text-gray-400 font-semibold mt-0.5">캠페인</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setShowPasswordModal(true)}
-                className="text-xs font-bold px-3 py-1.5 text-gray-500 hover:text-black transition-colors border border-transparent hover:border-gray-300"
-                style={{ borderRadius: 2 }}>
-                편집
-              </button>
-              <button onClick={handleSync} disabled={syncing}
-                className="text-xs font-bold px-3 py-1.5 text-gray-500 hover:text-black transition-colors border border-transparent hover:border-gray-300 disabled:opacity-40"
-                style={{ borderRadius: 2 }}>
-                {syncing ? '동기화 중...' : '동기화'}
-              </button>
-              {syncMsg && <span className="text-xs text-green-600">{syncMsg}</span>}
-            </div>
-          </div>
-        </div>
-
-        {/* 탭 + 카테고리 필터 */}
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="flex items-center justify-between">
-            {/* 캠페인 유형 탭 */}
-            <div className="flex">
-              {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
-                <button key={tab}
-                  onClick={() => { setActiveTab(tab); setFilter('전체') }}
-                  className="text-sm font-bold mr-8 py-3 transition-all"
-                  style={{
-                    color: activeTab === tab ? '#111' : '#aaa',
-                    borderBottom: activeTab === tab ? '2px solid #111' : '2px solid transparent',
-                  }}>
-                  {tab}
-                  <span className="ml-1.5 text-xs font-semibold" style={{ color: activeTab === tab ? '#555' : '#ccc' }}>
-                    {tab === '전체' ? cards.length : cards.filter(c => getCampaignType(c) === tab).length}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {/* 카테고리 필터 */}
-            <div className="flex items-center gap-1 pb-0.5">
-              {categories.map(cat => (
-                <button key={cat} onClick={() => setFilter(cat)}
-                  className="text-xs font-bold px-3 py-1 transition-all"
-                  style={{
-                    color: filter === cat ? '#111' : '#aaa',
-                    background: filter === cat ? '#111' : 'transparent',
-                    color: filter === cat ? '#fff' : '#888',
-                    borderRadius: 2,
-                  }}>
-                  {cat}
-                </button>
-              ))}
-            </div>
+      {/* ① 메인 네비 */}
+      <nav style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
+        <div className="max-w-[1600px] mx-auto px-6" style={{ height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* 로고 */}
+          <img src="/pointail_logo.png" alt="Pointail" style={{ height: 36, width: 'auto' }} />
+          {/* 오른쪽 액션 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {syncMsg && (
+              <span style={{ fontSize: 13, color: syncMsg.includes('실패') ? '#ef4444' : '#22c55e', fontWeight: 700, marginRight: 8 }}>
+                {syncMsg}
+              </span>
+            )}
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              style={{
+                fontSize: 13, fontWeight: 700, padding: '7px 16px', borderRadius: 2,
+                border: '1px solid #f0a0c8', background: '#fff', color: '#e87ab8',
+                cursor: syncing ? 'not-allowed' : 'pointer', opacity: syncing ? 0.5 : 1,
+                letterSpacing: '0.04em',
+              }}>
+              {syncing ? '동기화 중...' : '동기화'}
+            </button>
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              style={{
+                fontSize: 13, fontWeight: 700, padding: '7px 20px', borderRadius: 2,
+                border: '1px solid #e87ab8', background: '#e87ab8', color: '#fff',
+                cursor: 'pointer', letterSpacing: '0.04em',
+              }}>
+              편집
+            </button>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* 카드 그리드 */}
-      <main className="max-w-7xl mx-auto px-8 py-10">
+      {/* ③ 필터 / 탭 바 */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
+        <div className="max-w-[1600px] mx-auto px-6" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 50 }}>
+          {/* 캠페인 유형 탭 */}
+          <div style={{ display: 'flex', alignItems: 'stretch', height: '100%' }}>
+            {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
+              <button key={tab}
+                onClick={() => { setActiveTab(tab); setFilter('전체') }}
+                style={{
+                  fontSize: 16, fontWeight: 700, paddingInline: 18, marginRight: 0,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: activeTab === tab ? '#e87ab8' : '#aaa',
+                  borderBottom: activeTab === tab ? '2px solid #e87ab8' : '2px solid transparent',
+                  transition: 'color 0.15s, border-color 0.15s',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                {tab}
+                <span style={{ fontSize: 18, fontWeight: 800, color: activeTab === tab ? '#e87ab8' : '#ccc' }}>
+                  {tab === '전체' ? cards.length : cards.filter(c => getCampaignType(c) === tab).length}
+                </span>
+              </button>
+            ))}
+          </div>
+          {/* 카테고리 필터 칩 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            {categories.map(cat => (
+              <button key={cat} onClick={() => setFilter(cat)}
+                style={{
+                  fontSize: 14, fontWeight: 700, padding: '5px 13px', borderRadius: 2, border: '1px solid',
+                  borderColor: filter === cat ? '#e87ab8' : '#e2e2de',
+                  background: filter === cat ? '#e87ab8' : '#fff',
+                  color: filter === cat ? '#fff' : '#666',
+                  cursor: 'pointer', letterSpacing: '0.02em', transition: 'all 0.12s',
+                }}>
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ⑤ 카드 그리드 */}
+      <main className="max-w-[1600px] mx-auto px-6 pt-5 pb-16">
         {filtered.length === 0 ? (
-          <div className="text-center py-32 text-gray-300 text-sm tracking-widest uppercase">No results</div>
+          <div style={{ textAlign: 'center', padding: '120px 0', color: '#ccc', fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+            No results
+          </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filtered.map(card => <CampaignCard key={card.id} card={card} showTypeBadge={activeTab === '전체'} />)}
           </div>
         )}
       </main>
 
-      <footer className="max-w-7xl mx-auto px-8 py-8 flex items-center justify-between" style={{ borderTop: '1px solid #e8e8e4' }}>
-        <span className="text-xs text-gray-300 tracking-widest uppercase">Storelink · Campaign Reference</span>
-        <span className="text-xs text-gray-300">{new Date().getFullYear()}</span>
+      <footer className="max-w-[1600px] mx-auto px-6 py-6" style={{ borderTop: '1px solid #e2e2de', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>Storelink · Campaign Reference</span>
+        <span style={{ fontSize: 11, color: '#bbb' }}>{new Date().getFullYear()}</span>
       </footer>
     </div>
   )
@@ -482,8 +490,8 @@ function CampaignCard({
   return (
     <article className="flex flex-col group" style={{ background: '#fff' }}>
       {/* 미디어 영역 */}
-      <div className="relative w-full overflow-hidden bg-black" style={{ aspectRatio: '9/16', maxHeight: 480 }}>
-        {isEditing ? (
+      <div className="relative w-full overflow-hidden bg-white" style={{ aspectRatio: '9/16', maxHeight: 440 }}>
+        {isEditing && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); onTypeChange?.(type === '비딩형' ? '추가미션' : '비딩형') }}
@@ -498,12 +506,6 @@ function CampaignCard({
               <span className="text-white text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
             </div>
           </>
-        ) : showTypeBadge && (
-          <div
-            className="absolute top-2 left-2 z-20 text-xs font-bold px-2.5 py-1 pointer-events-none"
-            style={{ background: 'rgba(0,0,0,0.65)', color: '#fff', borderRadius: 2, backdropFilter: 'blur(4px)' }}>
-            {type}
-          </div>
         )}
         {embedUrl ? (
           <iframe
@@ -524,26 +526,38 @@ function CampaignCard({
             미리보기 없음
           </div>
         )}
-        {/* 호버 오버레이 */}
+        {/* 게시물 바로가기 버튼 */}
         {!isEditing && postUrl && (
           <a href={postUrl} target="_blank" rel="noopener noreferrer"
-            className="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ background: 'rgba(0,0,0,0.45)' }}>
-            <span className="text-white text-xs font-bold tracking-widest uppercase border border-white px-4 py-2">
-              View Post ↗
-            </span>
+            style={{
+              position: 'absolute', bottom: 8, right: 8, zIndex: 20,
+              fontSize: 11, fontWeight: 700, textDecoration: 'none',
+              padding: '3px 10px', borderRadius: 2,
+              border: '1px solid #f0a0c8', color: '#e87ab8', background: '#fff',
+              letterSpacing: '0.02em', whiteSpace: 'nowrap',
+            }}>
+            게시물 보기
           </a>
         )}
       </div>
       {/* 메타 정보 */}
-      <div className="py-3 px-1 flex items-center justify-between" style={{ borderBottom: '1px solid #e8e8e4' }}>
-        <div>
-          <div className="text-xs font-bold text-black tracking-tight truncate" style={{ maxWidth: 160 }}>
-            {card.brand_name || '—'}
-          </div>
-          <div className="text-xs text-gray-400 mt-0.5">{platform} · {card.category}</div>
+      <div style={{ padding: '8px 12px 8px 10px', borderTop: '1px solid #e8e8e4', borderBottom: '1px solid #e8e8e4', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{
+            fontSize: 13, fontWeight: 700, padding: '3px 10px', borderRadius: 2,
+            background: type === '추가미션' ? '#e87ab8' : '#fff',
+            color: type === '추가미션' ? '#fff' : '#e87ab8',
+            border: type === '추가미션' ? '1px solid #e87ab8' : '1px solid #f0a0c8',
+            whiteSpace: 'nowrap',
+          }}>
+            {type}
+          </span>
+          {card.category && (
+            <span style={{ fontSize: 13, color: '#aaa', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>
+              {card.category}
+            </span>
+          )}
         </div>
-        <PlatformLogo platform={platform} size="sm" />
       </div>
     </article>
   )
