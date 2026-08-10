@@ -88,7 +88,7 @@ interface Props { initialCards: ReferenceCard[] }
 export default function PublicShowcase({ initialCards }: Props) {
   const router = useRouter()
   const [cards, setCards] = useState<ReferenceCard[]>(initialCards)
-  const [activeTab, setActiveTab] = useState<CampaignType>('비딩형')
+  const [activeTab, setActiveTab] = useState<CampaignType | '전체'>('전체')
   const [filter, setFilter] = useState('전체')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState<string | null>(null)
@@ -230,7 +230,7 @@ export default function PublicShowcase({ initialCards }: Props) {
 
   // 일반 모드 계산
   const categories = useMemo(() => {
-    const tabCards = cards.filter(c => getCampaignType(c) === activeTab)
+    const tabCards = activeTab === '전체' ? cards : cards.filter(c => getCampaignType(c) === activeTab)
     const all = tabCards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))
     const counts: Record<string, number> = {}
     for (const cat of all) counts[cat] = (counts[cat] || 0) + 1
@@ -240,7 +240,7 @@ export default function PublicShowcase({ initialCards }: Props) {
 
   const filtered = useMemo(() => {
     return cards
-      .filter(c => getCampaignType(c) === activeTab)
+      .filter(c => activeTab === '전체' || getCampaignType(c) === activeTab)
       .filter(c => filter === '전체' || (c.category || '').split(',').map(s => s.trim()).includes(filter))
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
   }, [cards, activeTab, filter])
@@ -410,9 +410,9 @@ export default function PublicShowcase({ initialCards }: Props) {
           ))}
         </div>
 
-        {/* 탭: 비딩형 / 추가미션 */}
+        {/* 탭: 전체 / 비딩형 / 추가미션 */}
         <div className="flex items-center gap-2 mb-5 flex-wrap">
-          {(['비딩형', '추가미션'] as CampaignType[]).map(tab => (
+          {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
             <button key={tab} onClick={() => { setActiveTab(tab); setFilter('전체') }}
               className="px-6 py-2.5 rounded-full font-black text-sm transition-all"
               style={activeTab === tab
@@ -421,7 +421,7 @@ export default function PublicShowcase({ initialCards }: Props) {
               }>
               {tab}
               <span className="ml-2 font-semibold opacity-70 text-xs">
-                {cards.filter(c => getCampaignType(c) === tab).length}
+                {tab === '전체' ? cards.length : cards.filter(c => getCampaignType(c) === tab).length}
               </span>
             </button>
           ))}
