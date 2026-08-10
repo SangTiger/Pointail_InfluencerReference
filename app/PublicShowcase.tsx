@@ -326,14 +326,14 @@ export default function PublicShowcase({ initialCards }: Props) {
 
   // ── 일반 모드 UI ──────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: '#ffffff', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
+    <div className="min-h-screen" style={{ background: '#f7f7f5', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
 
       {/* 비밀번호 모달 */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-80 mx-4">
-            <h3 className="text-xl font-black text-slate-900 mb-1">편집 모드</h3>
-            <p className="text-sm text-gray-500 mb-5">비밀번호를 입력하면 순서와 유형을 편집할 수 있습니다.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white p-8 w-80 mx-4" style={{ borderRadius: 4 }}>
+            <h3 className="text-base font-bold text-black mb-1 tracking-tight">편집 모드</h3>
+            <p className="text-xs text-gray-400 mb-5">비밀번호를 입력하세요.</p>
             <input
               type="password"
               value={passwordInput}
@@ -341,121 +341,120 @@ export default function PublicShowcase({ initialCards }: Props) {
               onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
               placeholder="비밀번호"
               autoFocus
-              className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all"
+              className="w-full border px-3 py-2.5 text-sm outline-none transition-all"
               style={passwordError
-                ? { borderColor: '#f87171', background: '#fff7f7' }
-                : { borderColor: '#e5e7eb' }
+                ? { borderColor: '#111', background: '#fafafa', borderRadius: 2 }
+                : { borderColor: '#e0e0e0', borderRadius: 2 }
               }
             />
             {passwordError && (
-              <p className="text-xs text-red-500 mt-1.5 font-semibold">비밀번호가 틀렸습니다.</p>
+              <p className="text-xs text-red-500 mt-1.5">비밀번호가 틀렸습니다.</p>
             )}
-            <div className="flex gap-2 mt-5">
+            <div className="flex gap-2 mt-4">
               <button
                 onClick={() => { setShowPasswordModal(false); setPasswordInput(''); setPasswordError(false) }}
-                className="flex-1 text-sm font-bold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:border-gray-400 transition-all">
+                className="flex-1 text-xs font-bold py-2.5 border border-gray-200 text-gray-500 hover:border-gray-400 transition-all"
+                style={{ borderRadius: 2 }}>
                 취소
               </button>
               <button
                 onClick={handlePasswordSubmit}
                 disabled={verifying || !passwordInput}
-                className="flex-1 text-sm font-bold py-2.5 rounded-xl text-white disabled:opacity-50 transition-all"
-                style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}>
-                {verifying ? '확인 중...' : '확인'}
+                className="flex-1 text-xs font-bold py-2.5 text-white disabled:opacity-40 transition-all"
+                style={{ background: '#111', borderRadius: 2 }}>
+                {verifying ? '...' : '확인'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Hero */}
-      <header className="relative overflow-hidden pb-12 pt-20"
-        style={{ background: 'linear-gradient(135deg,#e4edff 0%,#eeebff 40%,#faeeff 100%)' }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -right-28 -top-28 w-96 h-96 rounded-full"
-            style={{ background: 'radial-gradient(circle,rgba(167,139,250,.2),transparent 60%)' }} />
-          <div className="absolute -left-24 -bottom-32 w-96 h-96 rounded-full"
-            style={{ background: 'radial-gradient(circle,rgba(99,102,241,.15),transparent 60%)' }} />
-        </div>
-        <div className="relative z-10 max-w-5xl mx-auto px-6">
-          <div className="mb-8">
-            <span className="text-slate-900 tracking-tight" style={{ fontSize: '3.5rem', fontWeight: 900, letterSpacing: '-0.03em' }}>
-              storelink.
-            </span>
-          </div>
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-black text-slate-900 leading-tight tracking-tight">
-              검증된 인플루언서 레퍼런스로,<br />
-              <span className="text-blue-600">캠페인의 성과를 증명합니다.</span>
+      {/* 상단 헤더 */}
+      <header style={{ borderBottom: '1px solid #e8e8e4', background: '#f7f7f5' }}>
+        <div className="max-w-7xl mx-auto px-8 py-6 flex items-end justify-between">
+          {/* 좌: 브랜드 + 타이틀 */}
+          <div>
+            <div className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-3">Storelink</div>
+            <h1 style={{ fontSize: '2.6rem', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, color: '#111' }}>
+              캠페인 레퍼런스
             </h1>
-            <p className="mt-4 text-slate-700 text-lg leading-relaxed font-semibold">
-              스토어링크의 캠페인 성과를 정리했습니다.<br />
-              퀄리티·규모·채널 다양성을 한눈에 확인하세요.
-            </p>
+          </div>
+          {/* 우: 카운트 + 버튼 */}
+          <div className="flex items-end gap-6 pb-1">
+            <div className="text-right">
+              <div className="text-3xl font-black text-black" style={{ letterSpacing: '-0.03em' }}>{cards.length}</div>
+              <div className="text-xs text-gray-400 font-semibold mt-0.5">캠페인</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowPasswordModal(true)}
+                className="text-xs font-bold px-3 py-1.5 text-gray-500 hover:text-black transition-colors border border-transparent hover:border-gray-300"
+                style={{ borderRadius: 2 }}>
+                편집
+              </button>
+              <button onClick={handleSync} disabled={syncing}
+                className="text-xs font-bold px-3 py-1.5 text-gray-500 hover:text-black transition-colors border border-transparent hover:border-gray-300 disabled:opacity-40"
+                style={{ borderRadius: 2 }}>
+                {syncing ? '동기화 중...' : '동기화'}
+              </button>
+              {syncMsg && <span className="text-xs text-green-600">{syncMsg}</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* 탭 + 카테고리 필터 */}
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="flex items-center justify-between">
+            {/* 캠페인 유형 탭 */}
+            <div className="flex">
+              {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
+                <button key={tab}
+                  onClick={() => { setActiveTab(tab); setFilter('전체') }}
+                  className="text-sm font-bold mr-8 py-3 transition-all"
+                  style={{
+                    color: activeTab === tab ? '#111' : '#aaa',
+                    borderBottom: activeTab === tab ? '2px solid #111' : '2px solid transparent',
+                  }}>
+                  {tab}
+                  <span className="ml-1.5 text-xs font-semibold" style={{ color: activeTab === tab ? '#555' : '#ccc' }}>
+                    {tab === '전체' ? cards.length : cards.filter(c => getCampaignType(c) === tab).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {/* 카테고리 필터 */}
+            <div className="flex items-center gap-1 pb-0.5">
+              {categories.map(cat => (
+                <button key={cat} onClick={() => setFilter(cat)}
+                  className="text-xs font-bold px-3 py-1 transition-all"
+                  style={{
+                    color: filter === cat ? '#111' : '#aaa',
+                    background: filter === cat ? '#111' : 'transparent',
+                    color: filter === cat ? '#fff' : '#888',
+                    borderRadius: 2,
+                  }}>
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 pb-16">
-        {/* 탭: 전체 / 비딩형 / 추가미션 */}
-        <div className="flex items-center gap-2 mb-5 flex-wrap">
-          {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
-            <button key={tab} onClick={() => { setActiveTab(tab); setFilter('전체') }}
-              className="px-6 py-2.5 rounded-full font-black text-sm transition-all"
-              style={activeTab === tab
-                ? { background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: '#fff', boxShadow: '0 4px 12px rgba(37,99,235,.3)' }
-                : { background: '#f1f5f9', color: '#64748b' }
-              }>
-              {tab}
-              <span className="ml-2 font-semibold opacity-70 text-xs">
-                {tab === '전체' ? cards.length : cards.filter(c => getCampaignType(c) === tab).length}
-              </span>
-            </button>
-          ))}
-          <div className="ml-auto flex items-center gap-2">
-            <button onClick={() => setShowPasswordModal(true)}
-              className="text-sm font-bold px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700 transition-all shadow-sm">
-              편집
-            </button>
-            <button onClick={handleSync} disabled={syncing}
-              className="text-sm font-bold px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 hover:border-slate-400 disabled:opacity-50 transition-all shadow-sm">
-              {syncing ? '동기화 중...' : '동기화'}
-            </button>
-            {syncMsg && <span className="text-xs font-semibold text-green-600">{syncMsg}</span>}
-          </div>
-        </div>
-
-        {/* 카테고리 필터 */}
-        <div className="flex items-center gap-2 flex-wrap mb-5">
-          {categories.map(cat => (
-            <button key={cat} onClick={() => setFilter(cat)}
-              className="text-sm font-semibold px-4 py-2 rounded-full border transition-all shadow-sm"
-              style={filter === cat
-                ? { background: '#eff6ff', color: '#475569', borderColor: '#93c5fd' }
-                : { background: '#fff', color: '#475569', borderColor: '#e5e7eb' }
-              }>
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* 헤더 */}
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="text-2xl font-black text-slate-900">SNS 캠페인 레퍼런스</h2>
-          <span className="text-sm text-gray-400 font-semibold">· {filtered.length}건</span>
-        </div>
-
-        {/* 카드 그리드 */}
+      {/* 카드 그리드 */}
+      <main className="max-w-7xl mx-auto px-8 py-10">
         {filtered.length === 0 ? (
-          <div className="text-center py-24 text-gray-400 font-semibold">데이터 없음</div>
+          <div className="text-center py-32 text-gray-300 text-sm tracking-widest uppercase">No results</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filtered.map(card => <CampaignCard key={card.id} card={card} showTypeBadge={activeTab === '전체'} />)}
           </div>
         )}
+      </main>
 
-        <div className="mt-8 text-center text-xs text-gray-400">© STORELINK · 캠페인 레퍼런스 대시보드</div>
-      </div>
+      <footer className="max-w-7xl mx-auto px-8 py-8 flex items-center justify-between" style={{ borderTop: '1px solid #e8e8e4' }}>
+        <span className="text-xs text-gray-300 tracking-widest uppercase">Storelink · Campaign Reference</span>
+        <span className="text-xs text-gray-300">{new Date().getFullYear()}</span>
+      </footer>
     </div>
   )
 }
@@ -478,31 +477,31 @@ function CampaignCard({
   const embedUrl = igEmbedUrl(postUrl)
   const type = campaignType || getCampaignType(card)
 
+  const platform = getPlatform(card)
+
   return (
-    <article className={`bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md flex flex-col transition-all${!isEditing ? ' hover:-translate-y-1 hover:shadow-xl' : ''}`}>
-      <div className="relative w-full overflow-hidden bg-black" style={{ height: 400 }}>
+    <article className="flex flex-col group" style={{ background: '#fff' }}>
+      {/* 미디어 영역 */}
+      <div className="relative w-full overflow-hidden bg-black" style={{ aspectRatio: '9/16', maxHeight: 480 }}>
         {isEditing ? (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); onTypeChange?.(type === '비딩형' ? '추가미션' : '비딩형') }}
-              className="absolute top-2 left-2 z-20 text-xs font-bold px-3 py-1.5 rounded-full border shadow-sm"
-              style={type === '비딩형'
-                ? { background: '#eff6ff', color: '#2563eb', borderColor: '#93c5fd' }
-                : { background: '#fdf4ff', color: '#9333ea', borderColor: '#d8b4fe' }
-              }>
+              className="absolute top-2 left-2 z-20 text-xs font-bold px-2.5 py-1"
+              style={{
+                background: 'rgba(0,0,0,0.7)', color: '#fff', borderRadius: 2,
+                backdropFilter: 'blur(4px)',
+              }}>
               {type}
             </button>
-            <div className="absolute top-2 right-2 z-20 bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm">
-              <span className="text-gray-400 text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
+            <div className="absolute top-2 right-2 z-20 px-2 py-1" style={{ background: 'rgba(0,0,0,0.5)', borderRadius: 2, backdropFilter: 'blur(4px)' }}>
+              <span className="text-white text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
             </div>
           </>
         ) : showTypeBadge && (
           <div
-            className="absolute top-2 left-2 z-20 text-xs font-bold px-3 py-1.5 rounded-full border shadow-sm pointer-events-none"
-            style={type === '비딩형'
-              ? { background: '#eff6ff', color: '#2563eb', borderColor: '#93c5fd' }
-              : { background: '#fdf4ff', color: '#9333ea', borderColor: '#d8b4fe' }
-            }>
+            className="absolute top-2 left-2 z-20 text-xs font-bold px-2.5 py-1 pointer-events-none"
+            style={{ background: 'rgba(0,0,0,0.65)', color: '#fff', borderRadius: 2, backdropFilter: 'blur(4px)' }}>
             {type}
           </div>
         )}
@@ -521,23 +520,30 @@ function CampaignCard({
             }}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs text-center px-4 leading-relaxed bg-gray-100">
-            미리보기를 불러올 수 없습니다<br />게시물 보기로 확인하세요
+          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs bg-gray-900">
+            미리보기 없음
           </div>
         )}
-      </div>
-      <div className="px-4 py-3">
-        {postUrl ? (
+        {/* 호버 오버레이 */}
+        {!isEditing && postUrl && (
           <a href={postUrl} target="_blank" rel="noopener noreferrer"
-            className="block text-center text-sm font-bold py-2.5 rounded-xl text-white transition-all hover:brightness-110"
-            style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}>
-            게시물 보기
+            className="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ background: 'rgba(0,0,0,0.45)' }}>
+            <span className="text-white text-xs font-bold tracking-widest uppercase border border-white px-4 py-2">
+              View Post ↗
+            </span>
           </a>
-        ) : (
-          <span className="block text-center text-sm font-bold py-2.5 rounded-xl bg-gray-100 text-gray-400">
-            URL 없음
-          </span>
         )}
+      </div>
+      {/* 메타 정보 */}
+      <div className="py-3 px-1 flex items-center justify-between" style={{ borderBottom: '1px solid #e8e8e4' }}>
+        <div>
+          <div className="text-xs font-bold text-black tracking-tight truncate" style={{ maxWidth: 160 }}>
+            {card.brand_name || '—'}
+          </div>
+          <div className="text-xs text-gray-400 mt-0.5">{platform} · {card.category}</div>
+        </div>
+        <PlatformLogo platform={platform} size="sm" />
       </div>
     </article>
   )
