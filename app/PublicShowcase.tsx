@@ -527,7 +527,9 @@ function CampaignCard({
             {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
             className="absolute border-0"
             style={{
-              top: -60, left: '50%', width: 326, height: 580, transform: 'translateX(-50%)',
+              top: -60, left: '50%', width: 326, height: 580,
+              transform: 'translateX(-50%) scale(1.18)',
+              transformOrigin: 'top center',
               pointerEvents: isEditing ? 'none' : 'auto',
             }}
           />
