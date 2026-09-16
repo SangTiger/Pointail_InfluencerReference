@@ -560,7 +560,7 @@ function CampaignCard({
           </div>
         )}
         {/* 하단 Instagram 액션바(좋아요/하트 등) 마스킹 */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 56, background: '#fff', zIndex: 10 }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 130, background: '#fff', zIndex: 10 }} />
         {/* 게시물 바로가기 버튼 */}
         {!isEditing && postUrl && (
           <a href={postUrl} target="_blank" rel="noopener noreferrer"
