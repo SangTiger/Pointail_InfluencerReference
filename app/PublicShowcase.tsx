@@ -527,6 +527,7 @@ function CampaignCard({
   const embedUrl = igEmbedUrl(postUrl)
   const type = getCampaignType(card)
   const isFeed = card.metrics?.['종류'] === '피드'
+  const needsScaleBoost = ['DdOY9bXn71M', 'Dcqt_Oeklth'].some(id => postUrl.includes(id))
   const platform = getPlatform(card)
 
   return (
@@ -548,9 +549,9 @@ function CampaignCard({
             {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
             className="absolute border-0"
             style={{
-              top: ['DdOY9bXn71M', 'Dcqt_Oeklth'].some(id => postUrl.includes(id)) ? -68 : -60,
+              top: needsScaleBoost ? -68 : -60,
               left: '50%', width: 326, height: 580,
-              transform: ['DdOY9bXn71M', 'Dcqt_Oeklth'].some(id => postUrl.includes(id)) ? 'translateX(-50%) scale(1.2)' : 'translateX(-50%)',
+              transform: needsScaleBoost ? 'translateX(-50%) scale(1.2)' : 'translateX(-50%)',
               transformOrigin: 'top center',
               pointerEvents: isEditing ? 'none' : 'auto',
             }}
@@ -560,9 +561,9 @@ function CampaignCard({
             미리보기 없음
           </div>
         )}
-        {/* 피드 포스트: 하단 Instagram 액션바(좋아요/하트) 마스킹 */}
-        {isFeed && (
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 130, background: '#fff', zIndex: 10 }} />
+        {/* 피드/스케일 포스트: 하단 Instagram 액션바 마스킹 */}
+        {(isFeed || needsScaleBoost) && (
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: needsScaleBoost ? 70 : 130, background: '#fff', zIndex: 10 }} />
         )}
         {/* 게시물 바로가기 버튼 */}
         {!isEditing && postUrl && (
