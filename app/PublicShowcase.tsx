@@ -548,9 +548,9 @@ function CampaignCard({
             {...(!postUrl.includes('/reel/') && { sandbox: 'allow-scripts allow-same-origin' })}
             className="absolute border-0"
             style={{
-              top: postUrl.includes('DdOY9bXn71M') ? -76 : -60,
+              top: ['DdOY9bXn71M', 'Dcqt_Oeklth'].some(id => postUrl.includes(id)) ? -68 : -60,
               left: '50%', width: 326, height: 580,
-              transform: postUrl.includes('DdOY9bXn71M') ? 'translateX(-50%) scale(1.35)' : 'translateX(-50%)',
+              transform: ['DdOY9bXn71M', 'Dcqt_Oeklth'].some(id => postUrl.includes(id)) ? 'translateX(-50%) scale(1.2)' : 'translateX(-50%)',
               transformOrigin: 'top center',
               pointerEvents: isEditing ? 'none' : 'auto',
             }}
