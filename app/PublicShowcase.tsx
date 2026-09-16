@@ -101,8 +101,8 @@ export default function PublicShowcase({ initialCards }: Props) {
   const [editMode, setEditMode] = useState(false)
   const [editPassword, setEditPassword] = useState('')
   const [editCards, setEditCards] = useState<ReferenceCard[]>([])
-  const [dragIndex, setDragIndex] = useState<number | null>(null)
-  const [dragOver, setDragOver] = useState<number | null>(null)
+  const [dragCardId, setDragCardId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
 
@@ -168,30 +168,28 @@ export default function PublicShowcase({ initialCards }: Props) {
     }
   }
 
-  function handleTypeChange(id: string, type: CampaignType) {
-    setEditCards(prev => prev.map(c => c.id === id ? { ...c, campaign_type: type } : c))
+  function handleDragStart(cardId: string) {
+    setDragCardId(cardId)
   }
 
-  function handleDragStart(index: number) {
-    setDragIndex(index)
-  }
-
-  function handleDragOver(e: React.DragEvent, index: number) {
+  function handleDragOver(e: React.DragEvent, targetId: string) {
     e.preventDefault()
-    setDragOver(index)
-    if (dragIndex === null || dragIndex === index) return
+    setDragOverId(targetId)
+    if (!dragCardId || dragCardId === targetId) return
     setEditCards(prev => {
       const next = [...prev]
-      const [removed] = next.splice(dragIndex, 1)
-      next.splice(index, 0, removed)
+      const fromIdx = next.findIndex(c => c.id === dragCardId)
+      const toIdx = next.findIndex(c => c.id === targetId)
+      if (fromIdx === -1 || toIdx === -1) return prev
+      const [removed] = next.splice(fromIdx, 1)
+      next.splice(toIdx, 0, removed)
       return next
     })
-    setDragIndex(index)
   }
 
   function handleDragEnd() {
-    setDragIndex(null)
-    setDragOver(null)
+    setDragCardId(null)
+    setDragOverId(null)
   }
 
   async function handleSave() {
@@ -225,8 +223,15 @@ export default function PublicShowcase({ initialCards }: Props) {
     setEditMode(false)
     setEditPassword('')
     setEditCards([])
-    setDragIndex(null)
+    setDragCardId(null)
   }
+
+  // 편집 모드 필터된 카드
+  const filteredEditCards = useMemo(() => {
+    return editCards
+      .filter(c => activeTab === '전체' || getCampaignType(c) === activeTab)
+      .filter(c => filter === '전체' || (c.category || '').split(',').map(s => s.trim()).includes(filter))
+  }, [editCards, activeTab, filter])
 
   // 일반 모드 계산
   const categories = useMemo(() => {
@@ -258,68 +263,114 @@ export default function PublicShowcase({ initialCards }: Props) {
     { label: '제품 카테고리', value: categoryCnt,           unit: '개', foot: '제품군 다양성' },
   ]
 
-  // ── 편집 모드 UI ──────────────────────────────────────────
+  // ── 편집 모드 UI (일반 모드와 동일한 구조, 드래그 순서 변경만 가능) ────────
   if (editMode) {
     return (
-      <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
-        {/* 상단 편집 헤더 */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="font-black text-slate-900" style={{ fontSize: '1.4rem', letterSpacing: '-0.03em' }}>storelink.</span>
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+      <div className="min-h-screen" style={{ background: '#f5f5f3', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
+
+        {/* 네비 */}
+        <nav style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
+          <div className="max-w-[1600px] mx-auto px-6" style={{ height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <img src="/pointail_logo.png" alt="Pointail" style={{ height: 36, width: 'auto' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 2, background: '#fff8e1', color: '#c88000', border: '1px solid #ffe082', letterSpacing: '0.04em' }}>
                 편집 모드
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {saveMsg && (
-                <span className={`text-sm font-semibold ${saveMsg.includes('실패') ? 'text-red-500' : 'text-green-600'}`}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: saveMsg.includes('실패') ? '#ef4444' : '#16a34a' }}>
                   {saveMsg}
                 </span>
               )}
               <button onClick={handleCancel}
-                className="text-sm font-bold px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:border-gray-400 transition-all">
+                style={{ fontSize: 13, fontWeight: 700, padding: '7px 16px', borderRadius: 2, border: '1px solid #e2e2de', background: '#fff', color: '#666', cursor: 'pointer', letterSpacing: '0.04em' }}>
                 취소
               </button>
               <button onClick={handleSave} disabled={saving}
-                className="text-sm font-bold px-5 py-2 rounded-full text-white transition-all disabled:opacity-50"
-                style={{ background: '#e87ab8' }}>
+                style={{ fontSize: 13, fontWeight: 700, padding: '7px 20px', borderRadius: 2, border: '1px solid #e87ab8', background: '#e87ab8', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.5 : 1, letterSpacing: '0.04em' }}>
                 {saving ? '저장 중...' : '저장'}
               </button>
             </div>
           </div>
-        </div>
+        </nav>
 
-        <div className="max-w-5xl mx-auto px-6 py-8">
-          <p className="text-sm text-gray-400 mb-6 font-semibold">
-            카드를 드래그해서 순서 변경 · 왼쪽 배지 클릭으로 유형 전환
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {editCards.map((card, index) => (
-              <div
-                key={card.id}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={handleDragEnd}
-                style={{
-                  opacity: dragIndex === index ? 0.4 : 1,
-                  outline: dragOver === index && dragIndex !== index ? '2px solid #93c5fd' : 'none',
-                  outlineOffset: '2px',
-                  borderRadius: '16px',
-                  cursor: dragIndex === index ? 'grabbing' : 'grab',
-                }}
-              >
-                <CampaignCard
-                  card={card}
-                  isEditing
-                  campaignType={getCampaignType(card)}
-                  onTypeChange={(type) => handleTypeChange(card.id, type)}
-                />
-              </div>
-            ))}
+        {/* 필터 / 탭 바 */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
+          <div className="max-w-[1600px] mx-auto px-6" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 50 }}>
+            <div style={{ display: 'flex', alignItems: 'stretch', height: '100%' }}>
+              {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
+                <button key={tab}
+                  onClick={() => { setActiveTab(tab); setFilter('전체') }}
+                  style={{
+                    fontSize: 16, fontWeight: 700, paddingInline: 18,
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: activeTab === tab ? '#e87ab8' : '#aaa',
+                    borderBottom: activeTab === tab ? '2px solid #e87ab8' : '2px solid transparent',
+                    transition: 'color 0.15s, border-color 0.15s',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}>
+                  {tab}
+                  <span style={{ fontSize: 18, fontWeight: 800, color: activeTab === tab ? '#e87ab8' : '#ccc' }}>
+                    {tab === '전체' ? editCards.length : editCards.filter(c => getCampaignType(c) === tab).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              {categories.map(cat => (
+                <button key={cat} onClick={() => setFilter(cat)}
+                  style={{
+                    fontSize: 14, fontWeight: 700, padding: '5px 13px', borderRadius: 2, border: '1px solid',
+                    borderColor: filter === cat ? '#e87ab8' : '#e2e2de',
+                    background: filter === cat ? '#e87ab8' : '#fff',
+                    color: filter === cat ? '#fff' : '#666',
+                    cursor: 'pointer', letterSpacing: '0.02em', transition: 'all 0.12s',
+                  }}>
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* 카드 그리드 */}
+        <main className="max-w-[1600px] mx-auto px-6 pt-5 pb-16">
+          <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16, fontWeight: 600, letterSpacing: '0.04em' }}>
+            카드를 드래그해서 순서를 변경하세요
+          </p>
+          {filteredEditCards.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '120px 0', color: '#ccc', fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+              No results
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredEditCards.map(card => (
+                <div
+                  key={card.id}
+                  draggable
+                  onDragStart={() => handleDragStart(card.id)}
+                  onDragOver={(e) => handleDragOver(e, card.id)}
+                  onDragEnd={handleDragEnd}
+                  style={{
+                    opacity: dragCardId === card.id ? 0.4 : 1,
+                    outline: dragOverId === card.id && dragCardId !== card.id ? '2px solid #e87ab8' : 'none',
+                    outlineOffset: '2px',
+                    borderRadius: 4,
+                    cursor: dragCardId === card.id ? 'grabbing' : 'grab',
+                  }}
+                >
+                  <CampaignCard card={card} isEditing showTypeBadge={activeTab === '전체'} />
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+
+        <footer className="max-w-[1600px] mx-auto px-6 py-6" style={{ borderTop: '1px solid #e2e2de', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>Storelink · Campaign Reference</span>
+          <span style={{ fontSize: 11, color: '#bbb' }}>{new Date().getFullYear()}</span>
+        </footer>
       </div>
     )
   }
@@ -467,42 +518,27 @@ function CampaignCard({
   card,
   isEditing = false,
   showTypeBadge = false,
-  campaignType,
-  onTypeChange,
 }: {
   card: ReferenceCard
   isEditing?: boolean
   showTypeBadge?: boolean
-  campaignType?: CampaignType
-  onTypeChange?: (type: CampaignType) => void
 }) {
   const postUrl = getPostUrl(card)
   const embedUrl = igEmbedUrl(postUrl)
-  const type = campaignType || getCampaignType(card)
+  const type = getCampaignType(card)
 
   const platform = getPlatform(card)
 
   return (
     <article className="flex flex-col group" style={{ background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', borderRadius: 4, transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.14)' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)' }}>
+      onMouseEnter={e => { if (!isEditing) { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.14)' } }}
+      onMouseLeave={e => { if (!isEditing) { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)' } }}>
       {/* 미디어 영역 */}
       <div className="relative w-full overflow-hidden bg-white" style={{ aspectRatio: '9/16', maxHeight: 440 }}>
         {isEditing && (
-          <>
-            <button
-              onClick={(e) => { e.stopPropagation(); onTypeChange?.(type === '비딩형' ? '추가미션' : '비딩형') }}
-              className="absolute top-2 left-2 z-20 text-xs font-bold px-2.5 py-1"
-              style={{
-                background: 'rgba(0,0,0,0.7)', color: '#fff', borderRadius: 2,
-                backdropFilter: 'blur(4px)',
-              }}>
-              {type}
-            </button>
-            <div className="absolute top-2 right-2 z-20 px-2 py-1" style={{ background: 'rgba(0,0,0,0.5)', borderRadius: 2, backdropFilter: 'blur(4px)' }}>
-              <span className="text-white text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
-            </div>
-          </>
+          <div className="absolute top-2 right-2 z-20 px-2 py-1" style={{ background: 'rgba(0,0,0,0.5)', borderRadius: 2, backdropFilter: 'blur(4px)' }}>
+            <span className="text-white text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
+          </div>
         )}
         {embedUrl ? (
           <iframe
@@ -523,6 +559,8 @@ function CampaignCard({
             미리보기 없음
           </div>
         )}
+        {/* 하단 Instagram 액션바(좋아요/하트 등) 마스킹 */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 56, background: '#fff', zIndex: 10 }} />
         {/* 게시물 바로가기 버튼 */}
         {!isEditing && postUrl && (
           <a href={postUrl} target="_blank" rel="noopener noreferrer"
