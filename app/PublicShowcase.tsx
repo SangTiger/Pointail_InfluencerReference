@@ -526,7 +526,7 @@ function CampaignCard({
   const postUrl = getPostUrl(card)
   const embedUrl = igEmbedUrl(postUrl)
   const type = getCampaignType(card)
-
+  const isFeed = card.metrics?.['종류'] === '피드'
   const platform = getPlatform(card)
 
   return (
@@ -558,6 +558,10 @@ function CampaignCard({
           <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs bg-gray-900">
             미리보기 없음
           </div>
+        )}
+        {/* 피드 포스트: 하단 Instagram 액션바(좋아요/하트) 마스킹 */}
+        {isFeed && (
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 130, background: '#fff', zIndex: 10 }} />
         )}
         {/* 게시물 바로가기 버튼 */}
         {!isEditing && postUrl && (

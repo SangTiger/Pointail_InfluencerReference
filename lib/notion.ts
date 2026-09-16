@@ -43,6 +43,7 @@ export function mapNotionPageToCard(page: any) {
   const executedAt = getDate(props['실행일'])
   const notionType = getSelect(props['유형'])
   const campaignType = notionType === '추가미션' ? '추가미션' : '비딩형'
+  const postKind = getSelect(props['종류'])
 
   const metrics: Record<string, string> = {}
   if (platform) metrics['플랫폼'] = platform
@@ -51,6 +52,7 @@ export function mapNotionPageToCard(page: any) {
   if (quality) metrics['퀄리티'] = quality
   if (executedAt) metrics['실행일'] = executedAt
   if (postUrl) metrics['게시물 URL'] = postUrl
+  if (postKind) metrics['종류'] = postKind
 
   const summary = [platform, followers ? `${followers.toLocaleString()}명` : ''].filter(Boolean).join(' · ')
 
