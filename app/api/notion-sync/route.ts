@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       const { data: deleteResult, error: deleteError } = await supabase
         .from('reference_cards')
         .delete()
-        .not('notion_page_id', 'in', `(${notionIds.map((id) => `"${id}"`).join(',')})`)
+        .not('notion_page_id', 'in', `(${notionIds.join(',')})`)
         .select()
 
       if (deleteError) console.error('Delete error:', deleteError)

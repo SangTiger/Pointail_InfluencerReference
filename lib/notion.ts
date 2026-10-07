@@ -10,11 +10,18 @@ export async function fetchNotionDatabase() {
 
   if (!databaseId) throw new Error('NOTION_DATABASE_ID is not set')
 
-  const response = await notion.databases.query({
-    database_id: databaseId,
-  })
+  const results: any[] = []
+  let cursor: string | undefined = undefined
+  do {
+    const response = await notion.databases.query({
+      database_id: databaseId,
+      start_cursor: cursor,
+    })
+    results.push(...response.results)
+    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined
+  } while (cursor)
 
-  return response.results
+  return results
 }
 
 // SNS 캠페인 결과 관리 DB → reference_cards 매핑
