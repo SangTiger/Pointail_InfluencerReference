@@ -6,6 +6,42 @@ import { ReferenceCard } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 
 type CampaignType = '비딩형' | '추가미션'
+type Lang = 'ko' | 'ja'
+
+const CAT_JA: Record<string, string> = {
+  '전체': '全体', '스킨케어': 'スキンケア', '화장품': 'コスメ', '기타': 'その他',
+  '뷰티': 'ビューティー', '패션': 'ファッション', '식품': '食品', '음료': '飲料',
+  '생활': '生活', '가전': '家電', '건강': '健康', '반려동물': 'ペット',
+  '유아': 'ベビー', '스포츠': 'スポーツ',
+}
+function catLabel(cat: string, lang: Lang) {
+  return lang === 'ko' ? cat : (CAT_JA[cat] ?? cat)
+}
+
+const LABELS = {
+  ko: {
+    all: '전체', bidding: '비딩형', extra: '추가미션',
+    sync: '동기화', syncing: '동기화 중...', edit: '편집',
+    noPreview: '미리보기 없음', viewPost: '게시물 바로가기',
+    drag: '카드를 드래그해서 순서를 변경하세요',
+    editMode: '편집 모드', save: '저장', saving: '저장 중...', cancel: '취소',
+    saveOk: '저장 완료!', saveFail: '저장 실패', syncFail: '동기화 실패',
+    syncOk: (n: number) => `${n}건 동기화 완료`,
+    pwTitle: '편집 모드', pwDesc: '비밀번호를 입력하세요.', pwPlaceholder: '비밀번호',
+    pwError: '비밀번호가 틀렸습니다.', pwConfirm: '확인',
+  },
+  ja: {
+    all: '全体', bidding: 'ビッディング型', extra: '追加ミッション',
+    sync: '同期', syncing: '同期中...', edit: '編集',
+    noPreview: 'プレビューなし', viewPost: '投稿を見る',
+    drag: 'カードをドラッグして順序を変更できます',
+    editMode: '編集モード', save: '保存', saving: '保存中...', cancel: 'キャンセル',
+    saveOk: '保存完了！', saveFail: '保存失敗', syncFail: '同期失敗',
+    syncOk: (n: number) => `${n}件を同期完了`,
+    pwTitle: '編集モード', pwDesc: 'パスワードを入力してください。', pwPlaceholder: 'パスワード',
+    pwError: 'パスワードが間違っています。', pwConfirm: 'OK',
+  },
+} as const
 
 function getPlatform(card: ReferenceCard) {
   return card.metrics?.['플랫폼'] || '기타'
@@ -92,6 +128,7 @@ export default function PublicShowcase({ initialCards }: Props) {
   const [filter, setFilter] = useState('전체')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState<string | null>(null)
+  const [lang, setLang] = useState<Lang>('ko')
 
   // 편집 모드
   const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -105,6 +142,10 @@ export default function PublicShowcase({ initialCards }: Props) {
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
+
+  const t = LABELS[lang]
+  const tabLabel = (tab: CampaignType | '전체') =>
+    tab === '전체' ? t.all : tab === '비딩형' ? t.bidding : t.extra
 
   async function fetchCards() {
     const supabase = createClient()
@@ -127,11 +168,11 @@ export default function PublicShowcase({ initialCards }: Props) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Sync failed')
-      setSyncMsg(`${data.upserted}건 동기화 완료`)
+      setSyncMsg(t.syncOk(data.upserted))
       await fetchCards()
       router.refresh()
     } catch {
-      setSyncMsg('동기화 실패')
+      setSyncMsg(t.syncFail)
     } finally {
       setSyncing(false)
       setTimeout(() => setSyncMsg(null), 4000)
@@ -207,12 +248,12 @@ export default function PublicShowcase({ initialCards }: Props) {
         body: JSON.stringify({ password: editPassword, items }),
       })
       if (!res.ok) throw new Error('Save failed')
-      setSaveMsg('저장 완료!')
+      setSaveMsg(t.saveOk)
       await fetchCards()
       setEditMode(false)
       setEditPassword('')
     } catch {
-      setSaveMsg('저장 실패')
+      setSaveMsg(t.saveFail)
     } finally {
       setSaving(false)
       setTimeout(() => setSaveMsg(null), 3000)
@@ -226,14 +267,12 @@ export default function PublicShowcase({ initialCards }: Props) {
     setDragCardId(null)
   }
 
-  // 편집 모드 필터된 카드
   const filteredEditCards = useMemo(() => {
     return editCards
       .filter(c => activeTab === '전체' || getCampaignType(c) === activeTab)
       .filter(c => filter === '전체' || (c.category || '').split(',').map(s => s.trim()).includes(filter))
   }, [editCards, activeTab, filter])
 
-  // 일반 모드 계산
   const categories = useMemo(() => {
     const tabCards = activeTab === '전체' ? cards : cards.filter(c => getCampaignType(c) === activeTab)
     const all = tabCards.flatMap(c => (c.category || '').split(',').map(s => s.trim()).filter(Boolean))
@@ -250,7 +289,6 @@ export default function PublicShowcase({ initialCards }: Props) {
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
   }, [cards, activeTab, filter])
 
-  // KPI
   const totalReach = cards.reduce((s, c) => s + getFollowers(c), 0)
   const avgQuality = cards.length ? cards.reduce((s, c) => s + getQualityNum(c), 0) / cards.length : 0
   const platformCnt = new Set(cards.map(getPlatform)).size
@@ -263,39 +301,36 @@ export default function PublicShowcase({ initialCards }: Props) {
     { label: '제품 카테고리', value: categoryCnt,           unit: '개', foot: '제품군 다양성' },
   ]
 
-  // ── 편집 모드 UI (일반 모드와 동일한 구조, 드래그 순서 변경만 가능) ────────
+  // ── 편집 모드 UI ────────────────────────────────────────
   if (editMode) {
     return (
       <div className="min-h-screen" style={{ background: '#f5f5f3', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
-
-        {/* 네비 */}
         <nav style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
           <div className="max-w-[1600px] mx-auto px-6" style={{ height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <img src="/pointail_logo.png" alt="Pointail" style={{ height: 36, width: 'auto' }} />
               <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 2, background: '#fff8e1', color: '#c88000', border: '1px solid #ffe082', letterSpacing: '0.04em' }}>
-                편집 모드
+                {t.editMode}
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {saveMsg && (
-                <span style={{ fontSize: 13, fontWeight: 700, color: saveMsg.includes('실패') ? '#ef4444' : '#16a34a' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: saveMsg.includes('失敗') || saveMsg.includes('실패') ? '#ef4444' : '#16a34a' }}>
                   {saveMsg}
                 </span>
               )}
               <button onClick={handleCancel}
                 style={{ fontSize: 13, fontWeight: 700, padding: '7px 16px', borderRadius: 2, border: '1px solid #e2e2de', background: '#fff', color: '#666', cursor: 'pointer', letterSpacing: '0.04em' }}>
-                취소
+                {t.cancel}
               </button>
               <button onClick={handleSave} disabled={saving}
                 style={{ fontSize: 13, fontWeight: 700, padding: '7px 20px', borderRadius: 2, border: '1px solid #e87ab8', background: '#e87ab8', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.5 : 1, letterSpacing: '0.04em' }}>
-                {saving ? '저장 중...' : '저장'}
+                {saving ? t.saving : t.save}
               </button>
             </div>
           </div>
         </nav>
 
-        {/* 필터 / 탭 바 */}
         <div style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
           <div className="max-w-[1600px] mx-auto px-6" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 50 }}>
             <div style={{ display: 'flex', alignItems: 'stretch', height: '100%' }}>
@@ -310,7 +345,7 @@ export default function PublicShowcase({ initialCards }: Props) {
                     transition: 'color 0.15s, border-color 0.15s',
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}>
-                  {tab}
+                  {tabLabel(tab)}
                   <span style={{ fontSize: 18, fontWeight: 800, color: activeTab === tab ? '#e87ab8' : '#ccc' }}>
                     {tab === '전체' ? editCards.length : editCards.filter(c => getCampaignType(c) === tab).length}
                   </span>
@@ -327,17 +362,16 @@ export default function PublicShowcase({ initialCards }: Props) {
                     color: filter === cat ? '#fff' : '#666',
                     cursor: 'pointer', letterSpacing: '0.02em', transition: 'all 0.12s',
                   }}>
-                  {cat}
+                  {catLabel(cat, lang)}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* 카드 그리드 */}
         <main className="max-w-[1600px] mx-auto px-6 pt-5 pb-16">
           <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16, fontWeight: 600, letterSpacing: '0.04em' }}>
-            카드를 드래그해서 순서를 변경하세요
+            {t.drag}
           </p>
           {filteredEditCards.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '120px 0', color: '#ccc', fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
@@ -360,7 +394,7 @@ export default function PublicShowcase({ initialCards }: Props) {
                     cursor: dragCardId === card.id ? 'grabbing' : 'grab',
                   }}
                 >
-                  <CampaignCard card={card} isEditing showTypeBadge={activeTab === '전체'} />
+                  <CampaignCard card={card} isEditing lang={lang} showTypeBadge={activeTab === '전체'} />
                 </div>
               ))}
             </div>
@@ -379,18 +413,17 @@ export default function PublicShowcase({ initialCards }: Props) {
   return (
     <div className="min-h-screen" style={{ background: '#f5f5f3', fontFamily: "'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
 
-      {/* 비밀번호 모달 */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-white p-8 w-80 mx-4" style={{ borderRadius: 4 }}>
-            <h3 className="text-base font-bold text-black mb-1 tracking-tight">편집 모드</h3>
-            <p className="text-xs text-gray-400 mb-5">비밀번호를 입력하세요.</p>
+            <h3 className="text-base font-bold text-black mb-1 tracking-tight">{t.pwTitle}</h3>
+            <p className="text-xs text-gray-400 mb-5">{t.pwDesc}</p>
             <input
               type="password"
               value={passwordInput}
               onChange={e => { setPasswordInput(e.target.value); setPasswordError(false) }}
               onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
-              placeholder="비밀번호"
+              placeholder={t.pwPlaceholder}
               autoFocus
               className="w-full border px-3 py-2.5 text-sm outline-none transition-all"
               style={passwordError
@@ -399,34 +432,54 @@ export default function PublicShowcase({ initialCards }: Props) {
               }
             />
             {passwordError && (
-              <p className="text-xs text-red-500 mt-1.5">비밀번호가 틀렸습니다.</p>
+              <p className="text-xs text-red-500 mt-1.5">{t.pwError}</p>
             )}
             <div className="flex gap-2 mt-4">
               <button
                 onClick={() => { setShowPasswordModal(false); setPasswordInput(''); setPasswordError(false) }}
                 className="flex-1 text-xs font-bold py-2.5 border border-gray-200 text-gray-500 hover:border-gray-400 transition-all"
                 style={{ borderRadius: 2 }}>
-                취소
+                {t.cancel}
               </button>
               <button
                 onClick={handlePasswordSubmit}
                 disabled={verifying || !passwordInput}
                 className="flex-1 text-xs font-bold py-2.5 text-white disabled:opacity-40 transition-all"
                 style={{ background: '#e87ab8', borderRadius: 2 }}>
-                {verifying ? '...' : '확인'}
+                {verifying ? '...' : t.pwConfirm}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ① 메인 네비 */}
+      {/* 네비 */}
       <nav style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
         <div className="max-w-[1600px] mx-auto px-6" style={{ height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* 로고 */}
-          <img src="/pointail_logo.png" alt="Pointail" style={{ height: 36, width: 'auto' }} />
+          {/* 로고 + 언어 토글 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/pointail_logo.png" alt="Pointail" style={{ height: 36, width: 'auto' }} />
+            <div style={{ display: 'flex', borderRadius: 2, border: '1px solid #e2e2de', overflow: 'hidden' }}>
+              {(['ko', 'ja'] as Lang[]).map(l => (
+                <button key={l} onClick={() => setLang(l)}
+                  style={{
+                    fontSize: 12, fontWeight: 700, padding: '4px 10px',
+                    background: lang === l ? '#e87ab8' : '#fff',
+                    color: lang === l ? '#fff' : '#aaa',
+                    border: 'none', cursor: 'pointer', letterSpacing: '0.04em',
+                  }}>
+                  {l === 'ko' ? 'KO' : 'JA'}
+                </button>
+              ))}
+            </div>
+          </div>
           {/* 오른쪽 액션 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {syncMsg && (
+              <span style={{ fontSize: 13, fontWeight: 700, color: syncMsg.includes('실패') || syncMsg.includes('失敗') ? '#ef4444' : '#16a34a' }}>
+                {syncMsg}
+              </span>
+            )}
             <button
               onClick={handleSync}
               disabled={syncing}
@@ -436,7 +489,7 @@ export default function PublicShowcase({ initialCards }: Props) {
                 cursor: syncing ? 'not-allowed' : 'pointer', opacity: syncing ? 0.5 : 1,
                 letterSpacing: '0.04em',
               }}>
-              {syncing ? '동기화 중...' : '동기화'}
+              {syncing ? t.syncing : t.sync}
             </button>
             <button
               onClick={() => setShowPasswordModal(true)}
@@ -445,16 +498,15 @@ export default function PublicShowcase({ initialCards }: Props) {
                 border: '1px solid #e87ab8', background: '#e87ab8', color: '#fff',
                 cursor: 'pointer', letterSpacing: '0.04em',
               }}>
-              편집
+              {t.edit}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* ③ 필터 / 탭 바 */}
+      {/* 탭 / 필터 바 */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e2e2de' }}>
         <div className="max-w-[1600px] mx-auto px-6" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 50 }}>
-          {/* 캠페인 유형 탭 */}
           <div style={{ display: 'flex', alignItems: 'stretch', height: '100%' }}>
             {(['전체', '비딩형', '추가미션'] as (CampaignType | '전체')[]).map(tab => (
               <button key={tab}
@@ -467,14 +519,13 @@ export default function PublicShowcase({ initialCards }: Props) {
                   transition: 'color 0.15s, border-color 0.15s',
                   display: 'flex', alignItems: 'center', gap: 5,
                 }}>
-                {tab}
+                {tabLabel(tab)}
                 <span style={{ fontSize: 18, fontWeight: 800, color: activeTab === tab ? '#e87ab8' : '#ccc' }}>
                   {tab === '전체' ? cards.length : cards.filter(c => getCampaignType(c) === tab).length}
                 </span>
               </button>
             ))}
           </div>
-          {/* 카테고리 필터 칩 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             {categories.map(cat => (
               <button key={cat} onClick={() => setFilter(cat)}
@@ -485,14 +536,14 @@ export default function PublicShowcase({ initialCards }: Props) {
                   color: filter === cat ? '#fff' : '#666',
                   cursor: 'pointer', letterSpacing: '0.02em', transition: 'all 0.12s',
                 }}>
-                {cat}
+                {catLabel(cat, lang)}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ⑤ 카드 그리드 */}
+      {/* 카드 그리드 */}
       <main className="max-w-[1600px] mx-auto px-6 pt-5 pb-16">
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '120px 0', color: '#ccc', fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
@@ -500,7 +551,7 @@ export default function PublicShowcase({ initialCards }: Props) {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtered.map(card => <CampaignCard key={card.id} card={card} showTypeBadge={activeTab === '전체'} />)}
+            {filtered.map(card => <CampaignCard key={card.id} card={card} lang={lang} showTypeBadge={activeTab === '전체'} />)}
           </div>
         )}
       </main>
@@ -518,16 +569,20 @@ function CampaignCard({
   card,
   isEditing = false,
   showTypeBadge = false,
+  lang = 'ko',
 }: {
   card: ReferenceCard
   isEditing?: boolean
   showTypeBadge?: boolean
+  lang?: Lang
 }) {
+  const t = LABELS[lang]
   const postUrl = getPostUrl(card)
   const embedUrl = igEmbedUrl(postUrl)
   const type = getCampaignType(card)
   const isFeed = card.metrics?.['종류'] === '피드'
-  const needsScaleBoost = ['DdOY9bXn71M', 'Dcqt_Oeklth'].some(id => postUrl.includes(id))
+  const isReel = postUrl.includes('/reel/')
+  const needsScaleBoost = false
   const platform = getPlatform(card)
 
   return (
@@ -535,7 +590,9 @@ function CampaignCard({
       onMouseEnter={e => { if (!isEditing) { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.14)' } }}
       onMouseLeave={e => { if (!isEditing) { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)' } }}>
       {/* 미디어 영역 */}
-      <div className="relative w-full overflow-hidden bg-white" style={{ aspectRatio: '9/16', maxHeight: 440 }}>
+      <div className="relative w-full overflow-hidden bg-white" style={isFeed
+  ? { height: 460 }
+  : { aspectRatio: '9/16', maxHeight: 440 }}>
         {isEditing && (
           <div className="absolute top-2 right-2 z-20 px-2 py-1" style={{ background: 'rgba(0,0,0,0.5)', borderRadius: 2, backdropFilter: 'blur(4px)' }}>
             <span className="text-white text-sm" style={{ fontFamily: 'monospace' }}>⠿</span>
@@ -558,12 +615,12 @@ function CampaignCard({
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs bg-gray-900">
-            미리보기 없음
+            {t.noPreview}
           </div>
         )}
         {/* 피드/스케일 포스트: 하단 Instagram 액션바 마스킹 */}
         {(isFeed || needsScaleBoost) && (
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: needsScaleBoost ? 70 : 130, background: '#fff', zIndex: 10 }} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: needsScaleBoost ? 70 : 25, background: '#fff', zIndex: 10 }} />
         )}
         {/* 게시물 바로가기 버튼 */}
         {!isEditing && postUrl && (
@@ -574,7 +631,7 @@ function CampaignCard({
               fontSize: 15, fontWeight: 700, textDecoration: 'none',
               color: '#999', whiteSpace: 'nowrap',
             }}>
-            게시물 바로가기
+            {t.viewPost}
           </a>
         )}
       </div>
@@ -588,11 +645,11 @@ function CampaignCard({
             border: type === '추가미션' ? '1px solid #e87ab8' : '1px solid #f0a0c8',
             whiteSpace: 'nowrap',
           }}>
-            {type}
+            {type === '비딩형' ? t.bidding : t.extra}
           </span>
           {card.category && (
             <span style={{ fontSize: 13, color: '#666', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>
-              #{card.category}
+              #{card.category.split(',').map(c => catLabel(c.trim(), lang)).join(', ')}
             </span>
           )}
         </div>
